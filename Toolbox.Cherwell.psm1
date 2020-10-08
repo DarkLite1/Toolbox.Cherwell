@@ -4860,7 +4860,7 @@ Function Update-CherwellTicketHC {
         module folder. Ex. Test, Prod, ...
 
     .EXAMPLE
-        To close a ticket the only thing required is to updated the correct 
+        To close a ticket the only thing required is to update the correct 
         Cherwell ticket fields.
 
         $systemUser = Get-CherwellSystemUserHC -Environment Test -Filter @{

@@ -72,7 +72,7 @@ $ticketNr =  New-CherwellTicketHC -Environment Stage -KeyValuePair @{
 
 ### Close a ticket
 
-To close a ticket the only thing required is to updated the correct Cherwell ticket fields.
+To close a ticket the only thing required is to update the correct Cherwell ticket fields.
 
 ```powershell
 $systemUser = Get-CherwellSystemUserHC -Environment Test -Filter @{
