@@ -29,20 +29,20 @@ to create a new ticket. The module will try to find a single matching system use
 automatically. 
 
 ```powershell
-    $ticketNr = New-CherwellTicketHC -Environment Stage -KeyValuePair @{
-        IncidentType            = 'Incident'
-        RequesterSamAccountName = 'cnorris'
-        OwnedBySamAccountName   = 'bmarley'
-        OwnedByTeam             = 'GLB'
-        ShortDescription        = 'Server decommissioning'
-        Description             = 'Decommission server'
-        Priority                = '2'
-        Source                  = 'Event'
-        ServiceCountryCode      = 'BNL'
-        Service                 = 'SERVER'
-        Category                = 'Server lifecycle'
-        SubCategory             = 'Submit Request'
-    }
+$ticketNr = New-CherwellTicketHC -Environment Stage -KeyValuePair @{
+    IncidentType            = 'Incident'
+    RequesterSamAccountName = 'cnorris'
+    OwnedBySamAccountName   = 'bmarley'
+    OwnedByTeam             = 'GLB'
+    ShortDescription        = 'Server decommissioning'
+    Description             = 'Decommission server'
+    Priority                = '2'
+    Source                  = 'Event'
+    ServiceCountryCode      = 'BNL'
+    Service                 = 'SERVER'
+    Category                = 'Server lifecycle'
+    SubCategory             = 'Submit Request'
+}
 ```
 
 #### Using Cherwell fields only
@@ -50,37 +50,59 @@ automatically.
 Using known Cherwell fields only allows more control in case of errors. 
 
 ```powershell
-   $systemUser = Get-CherwellSystemUserHC -Environment Stage -Filter @{
-        FieldName  = 'EMail'
-        Operator   = 'eq'
-        FieldValue = 'gmail@chucknorris.com'
-    } -PassThru
+$systemUser = Get-CherwellSystemUserHC -Environment Stage -Filter @{
+    FieldName  = 'EMail'
+    Operator   = 'eq'
+    FieldValue = 'gmail@chucknorris.com'
+} -PassThru
 
-    if ($systemUser.count -ne 1) { throw 'No user or multiple users found' }
+if ($systemUser.count -ne 1) { throw 'No user or multiple users found' }
 
-    $customer = Get-CherwellCustomerHC -Environment Stage -Filter @{
-        FieldName  = 'SamAccountName'
-        Operator   = 'eq'
-        FieldValue = 'bmarley'
-    } -PassThru
+$customer = Get-CherwellCustomerHC -Environment Stage -Filter @{
+    FieldName  = 'SamAccountName'
+    Operator   = 'eq'
+    FieldValue = 'bmarley'
+} -PassThru
 
-    if ($customer.count -ne 1) { throw 'No customer or multiple customers found' }
+if ($customer.count -ne 1) { throw 'No customer or multiple customers found' }
 
-    $ticketNr =  New-CherwellTicketHC -Environment Stage -KeyValuePair @{
-        IncidentType            = 'Incident'
-        CustomerRecID           = $customer.busObRecId
-        OwnedByTeam             = 'GLB'
-        OwnedBy                 = $systemUser.busObPublicId
-        OwnedById               = $systemUser.busObRecId
-        ShortDescription        = 'Server decommissioning'
-        Description             = 'Decommission server'
-        Priority                = '2'
-        Source                  = 'Event'
-        ServiceCountryCode      = 'BNL'
-        Service                 = 'SERVER'
-        Category                = 'Server lifecycle'
-        SubCategory             = 'Submit Request'
-    }
+$ticketNr =  New-CherwellTicketHC -Environment Stage -KeyValuePair @{
+    IncidentType            = 'Incident'
+    CustomerRecID           = $customer.busObRecId
+    OwnedByTeam             = 'GLB'
+    OwnedBy                 = $systemUser.busObPublicId
+    OwnedById               = $systemUser.busObRecId
+    ShortDescription        = 'Server decommissioning'
+    Description             = 'Decommission server'
+    Priority                = '2'
+    Source                  = 'Event'
+    ServiceCountryCode      = 'BNL'
+    Service                 = 'SERVER'
+    Category                = 'Server lifecycle'
+    SubCategory             = 'Submit Request'
+}
+```
+
+### Update a ticket
+
+#### Close a ticket
+
+To close a ticket the only thing required is to updated the correct Cherwell ticket fields.
+
+```powershell
+$systemUser = Get-CherwellSystemUserHC -Environment Test -Filter @{
+    FieldName  = 'SamAccountName'
+    Operator   = 'eq'
+    FieldValue = 'cnorris'
+} -PassThru
+
+Update-CherwellTicketHC -Environment Test -Ticket 2020 -KeyValuePair @{
+    OwnedBy          = $systemUser.busObPublicId
+    OwnedById        = $systemUser.busObRecId
+    OwnedByTeam      = 'BNL'
+    Status           = 'Resolved'
+    CloseDescription = 'We fixed it!'
+}
 ```
 
 ## Updates

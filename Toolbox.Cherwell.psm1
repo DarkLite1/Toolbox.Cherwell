@@ -4910,18 +4910,19 @@ Function Update-CherwellTicketHC {
         module folder. Ex. Test, Prod, ...
 
     .EXAMPLE
-        Close 3 tickets at the same time by setting the mandatory fields 
-        OwnedBy, OwnedById, Status and 'CloseDescription'
+        To close a ticket the only thing required is to updated the correct 
+        Cherwell ticket fields.
 
-        $systenUser = Get-CherwellSystemUserHC -Environment Test -Filter @{
+        $systemUser = Get-CherwellSystemUserHC -Environment Test -Filter @{
             FieldName  = 'SamAccountName'
             Operator   = 'eq'
             FieldValue = 'cnorris'
         } -PassThru
-        
-        Update-CherwellTicketHC -Environment Test -Ticket 2020, 2021, 2022 -KeyValuePair @{
-            OwnedBy          = $systenUser.CherwellDetails.busObPublicId
-            OwnedById        = $systenUser.CherwellDetails.busObRecId
+
+        Update-CherwellTicketHC -Environment Test -Ticket 2020 -KeyValuePair @{
+            OwnedBy          = $systemUser.busObPublicId
+            OwnedById        = $systemUser.busObRecId
+            OwnedByTeam      = 'BNL'
             Status           = 'Resolved'
             CloseDescription = 'We fixed it!'
         }
@@ -4957,7 +4958,7 @@ Function Update-CherwellTicketHC {
         }
 
     .EXAMPLE
-        Change the 'Priority' and the 'ShortDescription' for 2 tickets at once
+        Change the 'Priority' and the 'ShortDescription' for 2 tickets
 
         Update-CherwellTicketHC -Environment Test -Ticket 6, 7 -KeyValuePair @{
             ShortDescription = 'HIHG PRIO TICKET'
