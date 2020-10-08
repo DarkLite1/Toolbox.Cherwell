@@ -1133,7 +1133,7 @@ Describe 'Test-InvalidPropertyCombinationHC' {
             }
         }
     }
-} -Tag test
+}
 Describe 'New-CherwellSearchFilterHC' {
     InModuleScope $moduleName {
         BeforeAll {
