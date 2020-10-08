@@ -13,7 +13,7 @@ A PowerShell module designed to easily interact with the Cherwell REST API. It p
 ## Using the module
 
 - Run in any script `Import-Module $modulePath` and use the CmdLet's
-  (only needed when the script is not in your module folder)
+  (only needed when the module is not in your default module folder `$env:PSModulePath`)
 - List all available CmdLet's `Get-Command -Module Toolbox.Cherwell`
 - Read the help `Get-Help New-CherwellTicketHC`
 - See the examples `Get-Help New-CherwellTicketHC -Examples`
