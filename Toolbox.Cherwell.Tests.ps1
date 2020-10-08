@@ -226,7 +226,7 @@ Describe 'Invoke-GetSearchResultsHC' {
             Property = 'RecId'
         }
         @{
-            CmdLet   = 'Get-CherwellSLAHC'
+            CmdLet   = 'Get-CherwellSlaHC'
             Filter   = @{
                 FieldName  = 'Title'
                 Operator   = 'startswith'
@@ -964,9 +964,9 @@ Describe 'Add-CherwellTicketConfigItemHC' {
 Describe 'Test-InvalidPropertyCombinationHC' {
     InModuleScope $moduleName {
         Context 'thrown an error on an incorrect combination' {
-            $errorMessageOwendBySamAccountName = "The field 'OwnedBySamAccountName' cannot be combined with the fields 'OwnedBy' or 'OwnedById'. Please use 'Get-CherwellSystemUserHC' that provides you with 'OwnedBy' and 'OwnedById' if you want to be specific."
+            $errorMessageOwnedBySamAccountName = "The field 'OwnedBySamAccountName' cannot be combined with the fields 'OwnedBy' or 'OwnedById'. Please use 'Get-CherwellSystemUserHC' that provides you with 'OwnedBy' and 'OwnedById' if you want to be specific."
             $errorMessageOwnedByIdOrOwnedBy = "Both the fields 'OwnedBy' and 'OwnedById' need to be specified. Please use the field 'OwnedBySamAccountName' instead or use 'Get-CherwellSystemUserHC' that provides you with 'OwnedBy' and 'OwnedById' if you want to be specific."
-            $errorMessageOwendByTeam = "When the fields 'OwnedBy', 'OwnedById' or 'OwnedBySamAccountName' are used it is mandatory to specify the field 'OwnedByTeam' too."
+            $errorMessageOwnedByTeam = "When the fields 'OwnedBy', 'OwnedById' or 'OwnedBySamAccountName' are used it is mandatory to specify the field 'OwnedByTeam' too."
             $errorMessageRequester = "The field 'RequesterSamAccountName' cannot be combined with the field 'CustomerRecID'. Please use 'Get-CherwellCustomerHC' to obtain the 'CustomerRecID' or use the SamAccountName in the field 'RequesterSamAccountName'."
             $errorSubmitOnBehalf = "The field 'SubmittedBySamAccountName' cannot be combined with the field 'SubmitOnBehalfOfID'. Please use 'Get-CherwellCustomerHC' to obtain the 'SubmitOnBehalfOfID' or use the SamAccountName in the field 'SubmittedBySamAccountName'."
             $TestCases = @(
@@ -986,7 +986,7 @@ Describe 'Test-InvalidPropertyCombinationHC' {
                 }
                 @{
                     KeyValuePair = $KeyValuePair
-                    ErrorMessage = $errorMessageOwendBySamAccountName
+                    ErrorMessage = $errorMessageOwnedBySamAccountName
                     Name         = $KeyValuePair.Keys -join ' + '
                 }
                 $KeyValuePair = @{
@@ -996,7 +996,7 @@ Describe 'Test-InvalidPropertyCombinationHC' {
                 }
                 @{
                     KeyValuePair = $KeyValuePair
-                    ErrorMessage = $errorMessageOwendBySamAccountName
+                    ErrorMessage = $errorMessageOwnedBySamAccountName
                     Name         = $KeyValuePair.Keys -join ' + '
                 }
                 $KeyValuePair = @{
@@ -1023,7 +1023,7 @@ Describe 'Test-InvalidPropertyCombinationHC' {
                 }
                 @{
                     KeyValuePair = $KeyValuePair
-                    ErrorMessage = $errorMessageOwendByTeam
+                    ErrorMessage = $errorMessageOwnedByTeam
                     Name         = $KeyValuePair.Keys -join ' + '
                 }
                 $KeyValuePair = @{
@@ -1031,7 +1031,7 @@ Describe 'Test-InvalidPropertyCombinationHC' {
                 }
                 @{
                     KeyValuePair = $KeyValuePair
-                    ErrorMessage = $errorMessageOwendByTeam
+                    ErrorMessage = $errorMessageOwnedByTeam
                     Name         = $KeyValuePair.Keys -join ' + '
                 }
                 $KeyValuePair = @{
