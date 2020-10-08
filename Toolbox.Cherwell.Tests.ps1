@@ -19,7 +19,7 @@ BeforeAll {
         SubCategory        = 'Request Service'
         Priority           = '2'
     }
-    $testCIs = @(
+    $testConfigItems = @(
         @{
             CIType      = 'ConfigServer'
             AssetTag    = '807584'
@@ -32,11 +32,7 @@ BeforeAll {
         }
         @{
             CIType        = 'ConfigSystem'
-            AssetTag      = 'CLZP00341'
-            Description   = 'Not so many of these'
-            LocationFloor = $null
-            OwnedBy       = $null
-            PrimaryUse    = $null
+            Description   = 'Not so many of these, speeds up the test'
         }
     )
     # should be in BeforeDiscovery https://github.com/pester/Pester/issues/1705
@@ -281,18 +277,18 @@ Describe 'New-CherwellConfigItemHC' {
     Context 'an error is thrown when' {
         It 'the Type is unknown' {
             {
-                New-CherwellConfigItemHC @testParams -Type 'NotExisting' -KeyValuePair $testCIs[0]
+                New-CherwellConfigItemHC @testParams -Type 'NotExisting' -KeyValuePair $testConfigItems[0]
             } |
             Should -Throw -PassThru |
             Should -BeLike "*Only the following CI types are supported*"
         }
     }
     It 'create a new CI' {
-        $testCI = $testCIs[0].Clone()
+        $testCI = $testConfigItems[0].Clone()
         $testCI.remove('CIType')
         $testCI.FriendlyName = '{0}duplicate' -f $testCI.FriendlyName
 
-        $Actual = New-CherwellConfigItemHC @testParams -KeyValuePair $testCI -Type $testCIs[0].CIType
+        $Actual = New-CherwellConfigItemHC @testParams -KeyValuePair $testCI -Type $testConfigItems[0].CIType
 
         $Actual | Should -Not -BeNullOrEmpty
     }
@@ -314,7 +310,7 @@ Describe 'Get-CherwellConfigItemHC' {
     Context 'when Type is provided and' {
         Context 'no filter is used' {
             It 'all CI objects are returned for that specific CI type' {
-                $Actual = Get-CherwellConfigItemHC @testParams -Type $testCIs[1].CIType
+                $Actual = Get-CherwellConfigItemHC @testParams -Type $testConfigItems[1].CIType
 
                 $Actual | Should -Not -BeNullOrEmpty
                 $Actual.Count | Should -BeGreaterThan 1
@@ -322,14 +318,14 @@ Describe 'Get-CherwellConfigItemHC' {
         }
         Context 'filter is used' {
             It 'a CI is returned for that CI types' {
-                $Actual = Get-CherwellConfigItemHC @testParams -Type $testCIs[0].CIType -Filter @{
+                $Actual = Get-CherwellConfigItemHC @testParams -Type $testConfigItems[0].CIType -Filter @{
                     FieldName  = 'FriendlyName'
                     Operator   = 'eq'
-                    FieldValue = $testCIs[0].HostName
+                    FieldValue = $testConfigItems[0].HostName
                 }
 
                 $Actual | Should -Not -BeNullOrEmpty
-                $Actual[0].HostName | Should -Be $testCIs[0].HostName
+                $Actual[0].HostName | Should -Be $testConfigItems[0].HostName
             }
             It 'nothing is returned when there is no match' {
                 $Actual = Get-CherwellConfigItemHC @testParams -Type 'ConfigPrinter' -Filter @{
@@ -343,14 +339,14 @@ Describe 'Get-CherwellConfigItemHC' {
         }
         Context 'InputObject is used' {
             It 'a CI is returned' {
-                $testCI = $testCIs[0].Clone()
+                $testCI = $testConfigItems[0].Clone()
                 $testFriendlyName = '{0}duplicate' -f $testCI.FriendlyName
                 $testCI.remove('CIType')
                 $testCI.FriendlyName = $testFriendlyName
 
-                $testCI = New-CherwellConfigItemHC @testParams -KeyValuePair $testCI -Type $testCIs[0].CIType
+                $testCI = New-CherwellConfigItemHC @testParams -KeyValuePair $testCI -Type $testConfigItems[0].CIType
 
-                $Actual = Get-CherwellConfigItemHC @testParams -Type $testCIs[0].CIType -InputObject $testCI
+                $Actual = Get-CherwellConfigItemHC @testParams -Type $testConfigItems[0].CIType -InputObject $testCI
 
                 $Actual | Should -Not -BeNullOrEmpty
                 $Actual | Should -HaveCount 1
@@ -534,10 +530,10 @@ Describe 'New-CherwellTicketHC' {
     Context 'create a new ticket with' {
         Context "'Primary CI' and 'Linked Config Item' where" {
             It 'CI is an object coming from Get-CherwellConfigItemHC' {
-                $testCI = Get-CherwellConfigItemHC -PassThru @testParams -Type $testCIs[0].CIType -Filter @{
+                $testCI = Get-CherwellConfigItemHC -PassThru @testParams -Type $testConfigItems[0].CIType -Filter @{
                     FieldName  = 'FriendlyName'
                     Operator   = 'eq'
-                    FieldValue = $testCIs[0].HostName
+                    FieldValue = $testConfigItems[0].HostName
                 }
 
                 $testCI | Should -Not -BeNullOrEmpty
@@ -556,7 +552,7 @@ Describe 'New-CherwellTicketHC' {
 
                 $Actual = Get-CherwellTicketHC @testParams -TicketNr $TicketNr -Property ConfigItemDisplayName
 
-                $Actual.ConfigItemDisplayName | Should -Be $testCIs[0].HostName
+                $Actual.ConfigItemDisplayName | Should -Be $testConfigItems[0].HostName
             }
             It 'CI is a hash table' {
                 $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
@@ -567,11 +563,11 @@ Describe 'New-CherwellTicketHC' {
                         Description             = 'Pester test Primary CI'
                         Source                  = 'Event'
                         CI                      = @{
-                            Type   = $testCIs[0].CIType
+                            Type   = $testConfigItems[0].CIType
                             Filter = @{
                                 FieldName  = 'FriendlyName'
                                 Operator   = 'eq'
-                                FieldValue = $testCIs[0].HostName
+                                FieldValue = $testConfigItems[0].HostName
                             }
                         }
                     } + $testMandatoryFields) 
@@ -580,7 +576,7 @@ Describe 'New-CherwellTicketHC' {
 
                 $Actual = Get-CherwellTicketHC @testParams -TicketNr $TicketNr -Property ConfigItemDisplayName
 
-                $Actual.ConfigItemDisplayName | Should -Be $testCIs[0].HostName
+                $Actual.ConfigItemDisplayName | Should -Be $testConfigItems[0].HostName
             }
             It 'CI a hash table but the CI is not found, so no CI is set' {
                 $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
@@ -591,7 +587,7 @@ Describe 'New-CherwellTicketHC' {
                         Description             = 'Pester test Primary CI'
                         Source                  = 'Event'
                         CI                      = @{
-                            Type   = $testCIs[0].CIType
+                            Type   = $testConfigItems[0].CIType
                             Filter = @{
                                 FieldName  = 'FriendlyName'
                                 Operator   = 'eq'
@@ -908,10 +904,10 @@ Describe 'Add-CherwellTicketConfigItemHC' {
                     Source                  = 'Event'
                 } + $testMandatoryFields)
 
-            $testCI = Get-CherwellConfigItemHC -PassThru @testParams -Type $testCIs[0].CIType -Filter @{
+            $testCI = Get-CherwellConfigItemHC -PassThru @testParams -Type $testConfigItems[0].CIType -Filter @{
                 FieldName  = 'FriendlyName'
                 Operator   = 'eq'
-                FieldValue = $testCIs[0].HostName
+                FieldValue = $testConfigItems[0].HostName
             }
 
             $testCI | Should -Not -BeNullOrEmpty
@@ -929,10 +925,10 @@ Describe 'Add-CherwellTicketConfigItemHC' {
                     Source                  = 'Event'
                 } + $testMandatoryFields)
 
-            $testCI = Get-CherwellConfigItemHC -PassThru @testParams -Type $testCIs[0].CIType -Filter @{
+            $testCI = Get-CherwellConfigItemHC -PassThru @testParams -Type $testConfigItems[0].CIType -Filter @{
                 FieldName  = 'FriendlyName'
                 Operator   = 'eq'
-                FieldValue = $testCIs[0].HostName
+                FieldValue = $testConfigItems[0].HostName
             }
 
             $testCI | Should -Not -BeNullOrEmpty
@@ -951,10 +947,10 @@ Describe 'Add-CherwellTicketConfigItemHC' {
                 Source                  = 'Event'
             } + $testMandatoryFields)
 
-        $testCIMultiple = Get-CherwellConfigItemHC -PassThru @testParams -Type $testCIs[0].CIType -Filter @{
+        $testCIMultiple = Get-CherwellConfigItemHC -PassThru @testParams -Type $testConfigItems[0].CIType -Filter @{
             FieldName  = 'FriendlyName'
             Operator   = 'contains'
-            FieldValue = $testCIs[0].HostName
+            FieldValue = $testConfigItems[0].HostName
         }
 
         $testCIMultiple | Should -Not -BeNullOrEmpty
