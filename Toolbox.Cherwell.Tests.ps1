@@ -21,37 +21,14 @@ BeforeAll {
     }
     $testCIs = @(
         @{
-            CIType       = 'ConfigComputer'
-            # AssetTag     = '4654654'
-            AssetType    = 'Laptop'
-            HostName     = 'BELCL003000'
-            FriendlyName = 'BELCL003000'
-            FQDN         = 'BELCL003000.grouphc.net'
-            Manufacturer = 'DELL'
-            MACAddress   = '00:05:9A:3C:7A:00'
-            Model        = 'Latitude E7450'
-            Description  = 'Pester automated test'
-            Location     = $null
-        }
-        @{
             CIType      = 'ConfigServer'
             AssetTag    = '807584'
             AssetType   = 'Virtual Server'
             AssetStatus = 'New'
             IPAddress   = '192.168.1.1'
             HostName    = $env:COMPUTERNAME
-            Model       = 'VMWware Virtual Platform'
+            Model       = 'VmWare Virtual Platform'
             Location    = $null
-        }
-        @{
-            CIType        = 'ConfigPrinter'
-            AssetTag      = 'CLZP00341'
-            AssetType     = 'Dot matrix printer'
-            PrinterStatus = $null
-            Manufacturer  = 'Konica Minolta'
-            Model         = 'Bizhub 3545c'
-            Description   = $null
-            Location      = $null
         }
         @{
             CIType        = 'ConfigSystem'
@@ -64,34 +41,36 @@ BeforeAll {
     )
     # should be in BeforeDiscovery https://github.com/pester/Pester/issues/1705
     # available in Pester 5.1.0-beta1, for now copying where needed
-    $testUser1 = @{
-        SamAccountName     = 'gijbelsb'
-        OwnedByTeam        = 'BNL INFRA'
-        CherwellSystemUser = Get-CherwellSystemUserHC @testParams -Filter @{
-            FieldName  = 'SamAccountName'
-            Operator   = 'eq'
-            FieldValue = 'gijbelsb'
-        } -PassThru
-        CherwellCustomer   = Get-CherwellCustomerHC @testParams -Filter @{
-            FieldName  = 'SamAccountName'
-            Operator   = 'eq'
-            FieldValue = 'gijbelsb'
-        } -PassThru
-    }
-    $testUser2 = @{
-        SamAccountName     = 'dverhuls'
-        OwnedByTeam        = 'BNL INFRA'
-        CherwellSystemUser = Get-CherwellSystemUserHC @testParams -Filter @{
-            FieldName  = 'SamAccountName'
-            Operator   = 'eq'
-            FieldValue = 'dverhuls'
-        } -PassThru
-        CherwellCustomer   = Get-CherwellCustomerHC @testParams -Filter @{
-            FieldName  = 'SamAccountName'
-            Operator   = 'eq'
-            FieldValue = 'dverhuls'
-        } -PassThru
-    }
+    $testUsers = @(
+        @{
+            SamAccountName     = 'gijbelsb'
+            OwnedByTeam        = 'BNL INFRA'
+            CherwellSystemUser = Get-CherwellSystemUserHC @testParams -Filter @{
+                FieldName  = 'SamAccountName'
+                Operator   = 'eq'
+                FieldValue = 'gijbelsb'
+            } -PassThru
+            CherwellCustomer   = Get-CherwellCustomerHC @testParams -Filter @{
+                FieldName  = 'SamAccountName'
+                Operator   = 'eq'
+                FieldValue = 'gijbelsb'
+            } -PassThru
+        }
+        @{
+            SamAccountName     = 'dverhuls'
+            OwnedByTeam        = 'BNL INFRA'
+            CherwellSystemUser = Get-CherwellSystemUserHC @testParams -Filter @{
+                FieldName  = 'SamAccountName'
+                Operator   = 'eq'
+                FieldValue = 'dverhuls'
+            } -PassThru
+            CherwellCustomer   = Get-CherwellCustomerHC @testParams -Filter @{
+                FieldName  = 'SamAccountName'
+                Operator   = 'eq'
+                FieldValue = 'dverhuls'
+            } -PassThru
+        }
+    )
 }
 
 Describe 'ticket details' {
@@ -99,8 +78,8 @@ Describe 'ticket details' {
         $TestTicketNr1 = New-CherwellTicketHC @testParams -KeyValuePair (
             @{
                 IncidentType            = 'Incident'
-                RequesterSamAccountName = $testUser1.SamAccountName
-                OwnedByTeam             = $testUser1.OwnedByTeam
+                RequesterSamAccountName = $testUsers[0].SamAccountName
+                OwnedByTeam             = $testUsers[0].OwnedByTeam
                 ShortDescription        = 'Pester automated test'
                 Description             = 'Get-CherwellTicketHC'
                 Source                  = 'Event'
@@ -302,22 +281,22 @@ Describe 'New-CherwellConfigItemHC' {
     Context 'an error is thrown when' {
         It 'the Type is unknown' {
             {
-                New-CherwellConfigItemHC @testParams -Type 'NotExisting' -KeyValuePair $testCIs[3]
+                New-CherwellConfigItemHC @testParams -Type 'NotExisting' -KeyValuePair $testCIs[0]
             } |
             Should -Throw -PassThru |
             Should -BeLike "*Only the following CI types are supported*"
         }
     }
     It 'create a new CI' {
-        $testCI = $testCIs[3].Clone()
+        $testCI = $testCIs[0].Clone()
         $testCI.remove('CIType')
         $testCI.FriendlyName = '{0}duplicate' -f $testCI.FriendlyName
 
-        $Actual = New-CherwellConfigItemHC @testParams -KeyValuePair $testCI -Type $testCIs[3].CIType
+        $Actual = New-CherwellConfigItemHC @testParams -KeyValuePair $testCI -Type $testCIs[0].CIType
 
         $Actual | Should -Not -BeNullOrEmpty
     }
-}
+} -Tag 'ci'
 Describe 'Get-CherwellConfigItemHC' {
     Context 'an error is thrown when' {
         It 'the Type is unknown' {
@@ -335,7 +314,7 @@ Describe 'Get-CherwellConfigItemHC' {
     Context 'when Type is provided and' {
         Context 'no filter is used' {
             It 'all CI objects are returned for that specific CI type' {
-                $Actual = Get-CherwellConfigItemHC @testParams -Type $testCIs[3].CIType
+                $Actual = Get-CherwellConfigItemHC @testParams -Type $testCIs[1].CIType
 
                 $Actual | Should -Not -BeNullOrEmpty
                 $Actual.Count | Should -BeGreaterThan 1
@@ -346,11 +325,11 @@ Describe 'Get-CherwellConfigItemHC' {
                 $Actual = Get-CherwellConfigItemHC @testParams -Type $testCIs[0].CIType -Filter @{
                     FieldName  = 'FriendlyName'
                     Operator   = 'eq'
-                    FieldValue = $testCIs[0].FriendlyName
+                    FieldValue = $testCIs[0].HostName
                 }
 
                 $Actual | Should -Not -BeNullOrEmpty
-                $Actual[0].FriendlyName | Should -Be $testCIs[0].FriendlyName
+                $Actual[0].HostName | Should -Be $testCIs[0].HostName
             }
             It 'nothing is returned when there is no match' {
                 $Actual = Get-CherwellConfigItemHC @testParams -Type 'ConfigPrinter' -Filter @{
@@ -364,28 +343,28 @@ Describe 'Get-CherwellConfigItemHC' {
         }
         Context 'InputObject is used' {
             It 'a CI is returned' {
-                $testCI = $testCIs[3].Clone()
+                $testCI = $testCIs[0].Clone()
                 $testFriendlyName = '{0}duplicate' -f $testCI.FriendlyName
                 $testCI.remove('CIType')
                 $testCI.FriendlyName = $testFriendlyName
 
-                $testCI = New-CherwellConfigItemHC @testParams -KeyValuePair $testCI -Type $testCIs[3].CIType
+                $testCI = New-CherwellConfigItemHC @testParams -KeyValuePair $testCI -Type $testCIs[0].CIType
 
-                $Actual = Get-CherwellConfigItemHC @testParams -Type $testCIs[3].CIType -InputObject $testCI
+                $Actual = Get-CherwellConfigItemHC @testParams -Type $testCIs[0].CIType -InputObject $testCI
 
                 $Actual | Should -Not -BeNullOrEmpty
                 $Actual | Should -HaveCount 1
             }
         }
     }
-}
+} -Tag 'ci'
 Describe 'Get-CherwellTicketHC' {
     BeforeAll {
         $TestTicketNr1 = New-CherwellTicketHC @testParams -KeyValuePair (
             @{
                 IncidentType            = 'Incident'
-                RequesterSamAccountName = $testUser1.SamAccountName
-                OwnedByTeam             = $testUser1.OwnedByTeam
+                RequesterSamAccountName = $testUsers[0].SamAccountName
+                OwnedByTeam             = $testUsers[0].OwnedByTeam
                 ShortDescription        = 'Pester automated test'
                 Description             = 'Get-CherwellTicketHC'
                 Source                  = 'Event'
@@ -394,8 +373,8 @@ Describe 'Get-CherwellTicketHC' {
         $TestTicketNr2 = New-CherwellTicketHC @testParams -KeyValuePair (
             @{
                 IncidentType            = 'Incident'
-                RequesterSamAccountName = $testUser1.SamAccountName
-                OwnedByTeam             = $testUser1.OwnedByTeam
+                RequesterSamAccountName = $testUsers[0].SamAccountName
+                OwnedByTeam             = $testUsers[0].OwnedByTeam
                 ShortDescription        = 'Pester automated test'
                 Description             = 'Get-CherwellTicketHC'
                 Source                  = 'Event'
@@ -416,8 +395,8 @@ Describe 'Set-CherwellTicketDetailHC' {
     BeforeAll {
         $TestTicketObject = New-CherwellTicketHC @testParams -PassThru -KeyValuePair (@{
                 IncidentType              = 'Incident'
-                RequesterSamAccountName   = $testUser1.SamAccountName
-                SubmittedBySamAccountName = $testUser1.SamAccountName
+                RequesterSamAccountName   = $testUsers[0].SamAccountName
+                SubmittedBySamAccountName = $testUsers[0].SamAccountName
                 Status                    = 'New'
                 ShortDescription          = 'Automated test'
                 Description               = 'Pester test set/get additional details'
@@ -480,8 +459,8 @@ Describe 'Get-CherwellTicketDetailHC' {
     BeforeAll {
         $TestTicketObject = New-CherwellTicketHC @testParams -PassThru -KeyValuePair (@{
                 IncidentType              = 'Incident'
-                RequesterSamAccountName   = $testUser1.SamAccountName
-                SubmittedBySamAccountName = $testUser1.SamAccountName
+                RequesterSamAccountName   = $testUsers[0].SamAccountName
+                SubmittedBySamAccountName = $testUsers[0].SamAccountName
                 Status                    = 'New'
                 ShortDescription          = 'Automated test'
                 Description               = 'Pester test set/get additional details'
@@ -500,8 +479,8 @@ Describe 'New-CherwellTicketHC' {
         It 'IncidentType is missing' { {
                 New-CherwellTicketHC @testParams -KeyValuePair (@{
                         #IncidentType = 'Incident'
-                        RequesterSamAccountName   = $testUser1.SamAccountName
-                        SubmittedBySamAccountName = $testUser1.SamAccountName
+                        RequesterSamAccountName   = $testUsers[0].SamAccountName
+                        SubmittedBySamAccountName = $testUsers[0].SamAccountName
                         ShortDescription          = 'Automated test'
                         Description               = 'Pester test IncidentType missing'
                         Source                    = 'Event'
@@ -512,7 +491,7 @@ Describe 'New-CherwellTicketHC' {
         It 'RequesterSamAccountName or CustomerRecID is missing' { {
                 New-CherwellTicketHC @testParams -KeyValuePair (@{
                         IncidentType     = 'Incident'
-                        #RequesterSamAccountName = $testUser1.SamAccountName
+                        #RequesterSamAccountName = $testUsers[0].SamAccountName
                         Status           = 'New'
                         ShortDescription = 'Automated test'
                         Description      = 'Pester test description'
@@ -526,10 +505,10 @@ Describe 'New-CherwellTicketHC' {
             {
                 New-CherwellTicketHC @testParams -KeyValuePair (@{
                         IncidentType              = 'Incident'
-                        RequesterSamAccountName   = $testUser1.SamAccountName
-                        SubmittedBySamAccountName = $testUser1.SamAccountName
-                        OwnedBy                   = $testUser1.SamAccountName
-                        # OwnedByTeam      = $testUser1.OwnedByTeam
+                        RequesterSamAccountName   = $testUsers[0].SamAccountName
+                        SubmittedBySamAccountName = $testUsers[0].SamAccountName
+                        OwnedBy                   = $testUsers[0].SamAccountName
+                        # OwnedByTeam      = $testUsers[0].OwnedByTeam
                         ShortDescription          = 'Automated test'
                         Description               = 'Pester test description without attachment'
                         Source                    = 'Event'
@@ -542,7 +521,7 @@ Describe 'New-CherwellTicketHC' {
             
             New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
                     Status                  = 'New'
                     ShortDescription        = 'Automated test'
                     Description             = 'Pester test incorrect properties'
@@ -558,14 +537,14 @@ Describe 'New-CherwellTicketHC' {
                 $testCI = Get-CherwellConfigItemHC -PassThru @testParams -Type $testCIs[0].CIType -Filter @{
                     FieldName  = 'FriendlyName'
                     Operator   = 'eq'
-                    FieldValue = $testCIs[0].FriendlyName
+                    FieldValue = $testCIs[0].HostName
                 }
 
                 $testCI | Should -Not -BeNullOrEmpty
 
                 $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                         IncidentType            = 'Incident'
-                        RequesterSamAccountName = $testUser1.SamAccountName
+                        RequesterSamAccountName = $testUsers[0].SamAccountName
                         Status                  = 'New'
                         ShortDescription        = 'Automated test primary CI as CI was provided as object by Get-CherwellConfigItemHC'
                         Description             = 'Pester test Primary CI'
@@ -577,12 +556,12 @@ Describe 'New-CherwellTicketHC' {
 
                 $Actual = Get-CherwellTicketHC @testParams -TicketNr $TicketNr -Property ConfigItemDisplayName
 
-                $Actual.ConfigItemDisplayName | Should -Be $testCIs[0].FriendlyName
+                $Actual.ConfigItemDisplayName | Should -Be $testCIs[0].HostName
             }
             It 'CI is a hash table' {
                 $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                         IncidentType            = 'Incident'
-                        RequesterSamAccountName = $testUser1.SamAccountName
+                        RequesterSamAccountName = $testUsers[0].SamAccountName
                         Status                  = 'New'
                         ShortDescription        = 'Automated test primary CI as CI was found from hash table'
                         Description             = 'Pester test Primary CI'
@@ -592,7 +571,7 @@ Describe 'New-CherwellTicketHC' {
                             Filter = @{
                                 FieldName  = 'FriendlyName'
                                 Operator   = 'eq'
-                                FieldValue = $testCIs[0].FriendlyName
+                                FieldValue = $testCIs[0].HostName
                             }
                         }
                     } + $testMandatoryFields) 
@@ -601,12 +580,12 @@ Describe 'New-CherwellTicketHC' {
 
                 $Actual = Get-CherwellTicketHC @testParams -TicketNr $TicketNr -Property ConfigItemDisplayName
 
-                $Actual.ConfigItemDisplayName | Should -Be $testCIs[0].FriendlyName
+                $Actual.ConfigItemDisplayName | Should -Be $testCIs[0].HostName
             }
             It 'CI a hash table but the CI is not found, so no CI is set' {
                 $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                         IncidentType            = 'Incident'
-                        RequesterSamAccountName = $testUser1.SamAccountName
+                        RequesterSamAccountName = $testUsers[0].SamAccountName
                         Status                  = 'New'
                         ShortDescription        = 'Automated test no primary CI as CI was not found from hash table'
                         Description             = 'Pester test Primary CI'
@@ -627,12 +606,12 @@ Describe 'New-CherwellTicketHC' {
 
                 $Actual.ConfigItemDisplayName | Should -BeNullOrEmpty
             }
-        }
+        } -Tag 'ci'
         It 'CustomerRecID' {
             $ticketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType              = 'Incident'
-                    CustomerRecID             = $testUser1.CherwellCustomer.busObRecId
-                    SubmittedBySamAccountName = $testUser1.SamAccountName
+                    CustomerRecID             = $testUsers[0].CherwellCustomer.busObRecId
+                    SubmittedBySamAccountName = $testUsers[0].SamAccountName
                     Status                    = 'New'
                     ShortDescription          = 'Automated test'
                     Description               = 'Pester test RequesterSamAccountName'
@@ -644,13 +623,13 @@ Describe 'New-CherwellTicketHC' {
             $Actual = Get-CherwellTicketHC @testParams -TicketNr $ticketNr -Property CustomerRecID
             
             $Actual.CustomerRecID | 
-            Should -Be $testUser1.CherwellCustomer.busObRecId
+            Should -Be $testUsers[0].CherwellCustomer.busObRecId
         }
         It 'RequesterSamAccountName > CustomerRecID' {
             $ticketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType              = 'Incident'
-                    RequesterSamAccountName   = $testUser1.SamAccountName
-                    SubmittedBySamAccountName = $testUser1.SamAccountName
+                    RequesterSamAccountName   = $testUsers[0].SamAccountName
+                    SubmittedBySamAccountName = $testUsers[0].SamAccountName
                     Status                    = 'New'
                     ShortDescription          = 'Automated test'
                     Description               = 'Pester test RequesterSamAccountName'
@@ -662,13 +641,13 @@ Describe 'New-CherwellTicketHC' {
             $Actual = Get-CherwellTicketHC @testParams -TicketNr $ticketNr -Property CustomerRecID
 
             $Actual.CustomerRecID | 
-            Should -Be $testUser1.CherwellCustomer.busObRecId
+            Should -Be $testUsers[0].CherwellCustomer.busObRecId
         }
         It 'Description with non English characters' {
             $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType              = 'Incident'
-                    RequesterSamAccountName   = $testUser1.SamAccountName
-                    SubmittedBySamAccountName = $testUser1.SamAccountName
+                    RequesterSamAccountName   = $testUsers[0].SamAccountName
+                    SubmittedBySamAccountName = $testUsers[0].SamAccountName
                     Status                    = 'New'
                     ShortDescription          = 'Automated test'
                     Description               = 'Pester test description with non English characters žluťoučký kůň úpěl ďábelské ódy'
@@ -684,8 +663,8 @@ Describe 'New-CherwellTicketHC' {
         It 'SubmittedBySamAccountName > SubmitOnBehalfOfID' {
             $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType              = 'Incident'
-                    RequesterSamAccountName   = $testUser1.SamAccountName
-                    SubmittedBySamAccountName = $testUser2.SamAccountName
+                    RequesterSamAccountName   = $testUsers[0].SamAccountName
+                    SubmittedBySamAccountName = $testUsers[1].SamAccountName
                     Status                    = 'New'
                     ShortDescription          = 'Automated test'
                     Description               = 'Pester test SubmittedBySamAccountName'
@@ -697,13 +676,13 @@ Describe 'New-CherwellTicketHC' {
             $Actual = Get-CherwellTicketHC @testParams -TicketNr $TicketNr -Property SubmitOnBehalfOfID
             
             $Actual.SubmitOnBehalfOfID | 
-            Should -Be $testUser2.CherwellCustomer.busObRecId
+            Should -Be $testUsers[1].CherwellCustomer.busObRecId
         }
         It 'SubmitOnBehalfOfID' {
             $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
-                    SubmitOnBehalfOfID      = $testUser2.CherwellCustomer.busObRecId
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
+                    SubmitOnBehalfOfID      = $testUsers[1].CherwellCustomer.busObRecId
                     Status                  = 'New'
                     ShortDescription        = 'Automated test'
                     Description             = 'Pester test SubmitOnBehalfOfID'
@@ -715,13 +694,13 @@ Describe 'New-CherwellTicketHC' {
             $Actual = Get-CherwellTicketHC @testParams -TicketNr $TicketNr -Property SubmitOnBehalfOfID
             
             $Actual.SubmitOnBehalfOfID | 
-            Should -Be $testUser2.CherwellCustomer.busObRecId
+            Should -Be $testUsers[1].CherwellCustomer.busObRecId
         }
         It 'OwnedByTeam' {
             $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
-                    OwnedByTeam             = $testUser1.OwnedByTeam
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
+                    OwnedByTeam             = $testUsers[0].OwnedByTeam
                     Status                  = 'New'
                     ShortDescription        = 'Automated test'
                     Description             = 'Pester test description with OwnedByTeam'
@@ -731,15 +710,15 @@ Describe 'New-CherwellTicketHC' {
             $TicketNr | Should -Not -BeNullOrEmpty
 
             $Actual = Get-CherwellTicketHC @testParams -TicketNr $TicketNr
-            $Actual.OwnedByTeam | Should -Be $testUser1.OwnedByTeam
+            $Actual.OwnedByTeam | Should -Be $testUsers[0].OwnedByTeam
         }
         It 'OwnedByTeam and OwnedBy' {
             $Expected = (@{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
-                    OwnedByTeam             = $testUser1.OwnedByTeam
-                    OwnedBy                 = $testUser1.CherwellSystemUser.busObPublicId
-                    OwnedById               = $testUser1.CherwellSystemUser.busObRecId
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
+                    OwnedByTeam             = $testUsers[0].OwnedByTeam
+                    OwnedBy                 = $testUsers[0].CherwellSystemUser.busObPublicId
+                    OwnedById               = $testUsers[0].CherwellSystemUser.busObRecId
                     Status                  = 'New'
                     ShortDescription        = 'Automated test'
                     Description             = 'Pester test description with OwnedBy'
@@ -752,15 +731,15 @@ Describe 'New-CherwellTicketHC' {
             $Actual = Get-CherwellTicketHC @testParams -Ticket $ticketNr -Property OwnedByID, OwnedBy
 
             $Actual.OwnedByID | 
-            Should -Be $testUser1.CherwellSystemUser.busObRecId
+            Should -Be $testUsers[0].CherwellSystemUser.busObRecId
             $Actual.OwnedBy | Should -Not -BeNullOrEmpty
         }
         It 'OwnedByTeam and OwnedBySamAccountName > OwnedByID OwnedBy' {
             $ticketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
-                    OwnedByTeam             = $testUser1.OwnedByTeam
-                    OwnedBySamAccountName   = $testUser1.SamAccountName
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
+                    OwnedByTeam             = $testUsers[0].OwnedByTeam
+                    OwnedBySamAccountName   = $testUsers[0].SamAccountName
                     Status                  = 'New'
                     ShortDescription        = 'Automated test'
                     Description             = 'Pester test OwnedBySamAccountName and OwnedByTeam'
@@ -779,7 +758,7 @@ Describe 'New-CherwellTicketHC' {
 
             $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
                     Status                  = 'New'
                     ShortDescription        = 'Automated test'
                     Description             = 'Pester test description with multiple attachment'
@@ -792,7 +771,7 @@ Describe 'New-CherwellTicketHC' {
         It "IncidentType 'Incident'" {
             $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
                     Status                  = 'New'
                     ShortDescription        = 'Automated test'
                     Description             = 'Pester test description standard ticket'
@@ -808,7 +787,7 @@ Describe 'New-CherwellTicketHC' {
         It "IncidentType 'Service Request'" {
             $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType            = 'Service Request'
-                    RequesterSamAccountName = $testUser1.SamAccountName
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
                     Status                  = 'New'
                     ShortDescription        = 'Automated test'
                     Description             = 'Pester test description standard ticket'
@@ -824,8 +803,8 @@ Describe 'New-CherwellTicketHC' {
         It 'Multiple lines with HTML tags' {
             $Actual = New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType              = 'Incident'
-                    RequesterSamAccountName   = $testUser1.SamAccountName
-                    SubmittedBySamAccountName = $testUser1.SamAccountName
+                    RequesterSamAccountName   = $testUsers[0].SamAccountName
+                    SubmittedBySamAccountName = $testUsers[0].SamAccountName
                     Status                    = 'New'
                     ShortDescription          = 'Automated test'
                     Description               = '
@@ -840,8 +819,8 @@ Describe 'New-CherwellTicketHC' {
         It 'blank Attachments' {
             $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType              = 'Incident'
-                    RequesterSamAccountName   = $testUser1.SamAccountName
-                    SubmittedBySamAccountName = $testUser1.SamAccountName
+                    RequesterSamAccountName   = $testUsers[0].SamAccountName
+                    SubmittedBySamAccountName = $testUsers[0].SamAccountName
                     Status                    = 'New'
                     ShortDescription          = 'Automated test'
                     Description               = 'Pester test description without attachment'
@@ -854,7 +833,7 @@ Describe 'New-CherwellTicketHC' {
         It 'blank SubmittedBySamAccountName' {
             $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType              = 'Incident'
-                    RequesterSamAccountName   = $testUser1.SamAccountName
+                    RequesterSamAccountName   = $testUsers[0].SamAccountName
                     SubmittedBySamAccountName = $null
                     Status                    = 'New'
                     ShortDescription          = 'Automated test'
@@ -869,8 +848,8 @@ Describe 'New-CherwellTicketHC' {
         $Actual = New-CherwellTicketHC @testParams -KeyValuePair @(
             (@{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
-                    OwnedByTeam             = $testUser1.OwnedByTeam
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
+                    OwnedByTeam             = $testUsers[0].OwnedByTeam
                     Status                  = 'New'
                     ShortDescription        = 'Automated test'
                     Description             = 'Pester test description'
@@ -878,7 +857,7 @@ Describe 'New-CherwellTicketHC' {
                 } + $testMandatoryFields)
             (@{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
                     Status                  = 'New'
                     ShortDescription        = 'Automated test'
                     Description             = 'Pester test description'
@@ -892,7 +871,7 @@ Describe 'New-CherwellTicketHC' {
         It 'an integer representing the ticket number' {
             $Actual = New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
                     Status                  = 'New'
                     ShortDescription        = 'Automated test'
                     Description             = 'Pester test default output is an integer'
@@ -905,7 +884,7 @@ Describe 'New-CherwellTicketHC' {
         It "a 'PSCustomObject' when using 'PassThru'" {
             $Actual = New-CherwellTicketHC -PassThru @testParams -KeyValuePair (@{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
                     Status                  = 'New'
                     ShortDescription        = 'Automated test'
                     Description             = 'Pester test PassThru output is an object'
@@ -922,7 +901,7 @@ Describe 'Add-CherwellTicketConfigItemHC' {
         It 'a ticket number is provided' {
             $testTicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
                     Status                  = 'New'
                     ShortDescription        = 'Automated test Add-CherwellTicketConfigItemHC'
                     Description             = 'Pester test description standard ticket'
@@ -932,7 +911,7 @@ Describe 'Add-CherwellTicketConfigItemHC' {
             $testCI = Get-CherwellConfigItemHC -PassThru @testParams -Type $testCIs[0].CIType -Filter @{
                 FieldName  = 'FriendlyName'
                 Operator   = 'eq'
-                FieldValue = $testCIs[0].FriendlyName
+                FieldValue = $testCIs[0].HostName
             }
 
             $testCI | Should -Not -BeNullOrEmpty
@@ -943,7 +922,7 @@ Describe 'Add-CherwellTicketConfigItemHC' {
         It 'a ticket object is provided' {
             $testTicket = New-CherwellTicketHC @testParams -PassThru -KeyValuePair (@{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
                     Status                  = 'New'
                     ShortDescription        = 'Automated test Add-CherwellTicketConfigItemHC'
                     Description             = 'Pester test description standard ticket'
@@ -953,7 +932,7 @@ Describe 'Add-CherwellTicketConfigItemHC' {
             $testCI = Get-CherwellConfigItemHC -PassThru @testParams -Type $testCIs[0].CIType -Filter @{
                 FieldName  = 'FriendlyName'
                 Operator   = 'eq'
-                FieldValue = $testCIs[0].FriendlyName
+                FieldValue = $testCIs[0].HostName
             }
 
             $testCI | Should -Not -BeNullOrEmpty
@@ -965,7 +944,7 @@ Describe 'Add-CherwellTicketConfigItemHC' {
     It "add multiple CI's to a ticket" {
         $testTicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                 IncidentType            = 'Incident'
-                RequesterSamAccountName = $testUser1.SamAccountName
+                RequesterSamAccountName = $testUsers[0].SamAccountName
                 Status                  = 'New'
                 ShortDescription        = 'Automated test Add-CherwellTicketConfigItemHC multiple CI'
                 Description             = 'Pester test description standard ticket'
@@ -975,7 +954,7 @@ Describe 'Add-CherwellTicketConfigItemHC' {
         $testCIMultiple = Get-CherwellConfigItemHC -PassThru @testParams -Type $testCIs[0].CIType -Filter @{
             FieldName  = 'FriendlyName'
             Operator   = 'contains'
-            FieldValue = 'BELCL00300'
+            FieldValue = $testCIs[0].HostName
         }
 
         $testCIMultiple | Should -Not -BeNullOrEmpty
@@ -985,15 +964,15 @@ Describe 'Add-CherwellTicketConfigItemHC' {
         } |
         Should -Not -Throw
     }
-}
+} -Tag 'ci'
 Describe 'Test-InvalidPropertyCombinationHC' {
     InModuleScope $moduleName {
         Context 'thrown an error on an incorrect combination' {
-            $errorMessageOwendBySamAccountName = "The field 'OwnedBySamAccountName' cannot be combined with the fields 'OwnedBy' or 'OwnedById'. Please use 'Get-CherwellSystemUserHC' that provides you wtih 'OwnedBy' and 'OwnedById' if you want to be specific."
-            $errorMessageOwnedByIdOrOwnedBy = "Both the fields 'OwnedBy' and 'OwnedById' need to be specified. Please use the field 'OwnedBySamAccountName' instead or use 'Get-CherwellSystemUserHC' that provides you wtih 'OwnedBy' and 'OwnedById' if you want to be specific."
+            $errorMessageOwendBySamAccountName = "The field 'OwnedBySamAccountName' cannot be combined with the fields 'OwnedBy' or 'OwnedById'. Please use 'Get-CherwellSystemUserHC' that provides you with 'OwnedBy' and 'OwnedById' if you want to be specific."
+            $errorMessageOwnedByIdOrOwnedBy = "Both the fields 'OwnedBy' and 'OwnedById' need to be specified. Please use the field 'OwnedBySamAccountName' instead or use 'Get-CherwellSystemUserHC' that provides you with 'OwnedBy' and 'OwnedById' if you want to be specific."
             $errorMessageOwendByTeam = "When the fields 'OwnedBy', 'OwnedById' or 'OwnedBySamAccountName' are used it is mandatory to specify the field 'OwnedByTeam' too."
-            $errorMessageRequester = "The field 'RequesterSamAccountName' cannot be combined with the field 'CustomerRecID'. Please use 'Get-CherwellCustomerHC' to obatain the 'CustomerRecID' or use the SamAccountName in the field 'RequesterSamAccountName'."
-            $errorSubmitOnBehalf = "The field 'SubmittedBySamAccountName' cannot be combined with the field 'SubmitOnBehalfOfID'. Please use 'Get-CherwellCustomerHC' to obatain the 'SubmitOnBehalfOfID' or use the SamAccountName in the field 'SubmittedBySamAccountName'."
+            $errorMessageRequester = "The field 'RequesterSamAccountName' cannot be combined with the field 'CustomerRecID'. Please use 'Get-CherwellCustomerHC' to obtain the 'CustomerRecID' or use the SamAccountName in the field 'RequesterSamAccountName'."
+            $errorSubmitOnBehalf = "The field 'SubmittedBySamAccountName' cannot be combined with the field 'SubmitOnBehalfOfID'. Please use 'Get-CherwellCustomerHC' to obtain the 'SubmitOnBehalfOfID' or use the SamAccountName in the field 'SubmittedBySamAccountName'."
             $TestCases = @(
                 $KeyValuePair = @{
                     RequesterSamAccountName = $null
@@ -1235,8 +1214,8 @@ Describe 'Remove-CherwellTicketHC' {
             $TestTicketNr = New-CherwellTicketHC @testParams -KeyValuePair (
                 @{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
-                    OwnedByTeam             = $testUser1.OwnedByTeam
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
+                    OwnedByTeam             = $testUsers[0].OwnedByTeam
                     ShortDescription        = 'Pester automated test'
                     Description             = 'Update ticket fields'
                     Source                  = 'Event'
@@ -1248,8 +1227,8 @@ Describe 'Remove-CherwellTicketHC' {
             $TestTicketNr = New-CherwellTicketHC @testParams -KeyValuePair (
                 @{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
-                    OwnedByTeam             = $testUser1.OwnedByTeam
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
+                    OwnedByTeam             = $testUsers[0].OwnedByTeam
                     ShortDescription        = 'Pester automated test'
                     Description             = 'Update ticket fields'
                     Source                  = 'Event'
@@ -1258,8 +1237,8 @@ Describe 'Remove-CherwellTicketHC' {
             $TestTicketNr2 = New-CherwellTicketHC @testParams -KeyValuePair (
                 @{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
-                    OwnedByTeam             = $testUser1.OwnedByTeam
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
+                    OwnedByTeam             = $testUsers[0].OwnedByTeam
                     ShortDescription        = 'Pester automated test'
                     Description             = 'Update ticket fields'
                     Source                  = 'Event'
@@ -1275,8 +1254,8 @@ Describe 'Update-CherwellTicketHC' {
         $TestTicketObject = New-CherwellTicketHC @testParams -PassThru -KeyValuePair (
             @{
                 IncidentType            = 'Incident'
-                RequesterSamAccountName = $testUser1.SamAccountName
-                OwnedByTeam             = $testUser1.OwnedByTeam
+                RequesterSamAccountName = $testUsers[0].SamAccountName
+                OwnedByTeam             = $testUsers[0].OwnedByTeam
                 ShortDescription        = 'Automated test'
                 Description             = 'Update-CherwellTicketHC'
                 Source                  = 'Event'
@@ -1350,8 +1329,8 @@ Describe 'Update-CherwellTicketHC' {
             $TestTicketNr1 = New-CherwellTicketHC @testParams -KeyValuePair (
                 @{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
-                    OwnedByTeam             = $testUser1.OwnedByTeam
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
+                    OwnedByTeam             = $testUsers[0].OwnedByTeam
                     ShortDescription        = 'Automated test'
                     Description             = 'Update-CherwellTicketHC'
                     Source                  = 'Event'
@@ -1360,8 +1339,8 @@ Describe 'Update-CherwellTicketHC' {
             $TestTicketNr2 = New-CherwellTicketHC @testParams -KeyValuePair (
                 @{
                     IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUser1.SamAccountName
-                    OwnedByTeam             = $testUser1.OwnedByTeam
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
+                    OwnedByTeam             = $testUsers[0].OwnedByTeam
                     ShortDescription        = 'Automated test'
                     Description             = 'Update-CherwellTicketHC'
                     Source                  = 'Event'
@@ -1387,7 +1366,7 @@ Describe 'Update-CherwellTicketHC' {
             $CherwellCustomer = Get-CherwellCustomerHC @testParams -Filter @{
                 FieldName  = 'SamAccountName'
                 Operator   = 'eq'
-                FieldValue = $testUser2.SamAccountName
+                FieldValue = $testUsers[1].SamAccountName
             } -PassThru
 
             $Expected = (
@@ -1409,46 +1388,46 @@ Describe 'Update-CherwellTicketHC' {
         It 'SubmittedBySamAccountName > SubmitOnBehalfOfID' {
             $Expected = (
                 @{
-                    SubmittedBySamAccountName = $testUser2.SamAccountName
+                    SubmittedBySamAccountName = $testUsers[1].SamAccountName
                 } + $testMandatoryFields
             )
 
             $Before = Get-CherwellTicketHC @testParams -TicketNr $TestTicketObject.busObPublicId -Property SubmitOnBehalfOfID
 
             $Before.SubmitOnBehalfOfID | 
-            Should -Not -Be $testUser2.CherwellCustomer.busObRecId
+            Should -Not -Be $testUsers[1].CherwellCustomer.busObRecId
 
             Update-CherwellTicketHC @testParams -TicketNr $TestTicketObject.busObPublicId -KeyValuePair $Expected
 
             $Actual = Get-CherwellTicketHC @testParams -TicketNr $TestTicketObject.busObPublicId -Property SubmitOnBehalfOfID
 
             $Actual.SubmitOnBehalfOfID | 
-            Should -Be $testUser2.CherwellCustomer.busObRecId
+            Should -Be $testUsers[1].CherwellCustomer.busObRecId
         }
         It 'RequesterSamAccountName > CustomerRecID' {
             $Expected = (
                 @{
-                    RequesterSamAccountName = $testUser1.SamAccountName
+                    RequesterSamAccountName = $testUsers[0].SamAccountName
                 } + $testMandatoryFields
             )
 
             $Before = Get-CherwellTicketHC @testParams -TicketNr $TestTicketObject.busObPublicId -Property CustomerRecID
 
             $Before.CustomerRecID | 
-            Should -Not -Be  $testUser1.CherwellCustomer.busObRecId
+            Should -Not -Be  $testUsers[0].CherwellCustomer.busObRecId
 
             Update-CherwellTicketHC @testParams -TicketNr $TestTicketObject.busObPublicId -KeyValuePair $Expected
 
             $Actual = Get-CherwellTicketHC @testParams -TicketNr $TestTicketObject.busObPublicId -Property CustomerRecID
 
             $Actual.CustomerRecID | 
-            Should -Be  $testUser1.CherwellCustomer.busObRecId
+            Should -Be  $testUsers[0].CherwellCustomer.busObRecId
         }
         It 'OwnedBySamAccountName and OwnedByTeam > OwnedBy, OwnedById, OwnedByTeam' {
             $Expected = (
                 @{
-                    OwnedBySamAccountName = $testUser1.SamAccountName
-                    OwnedByTeam           = $testUser1.OwnedByTeam
+                    OwnedBySamAccountName = $testUsers[0].SamAccountName
+                    OwnedByTeam           = $testUsers[0].OwnedByTeam
                 } + $testMandatoryFields
             )
         
@@ -1462,17 +1441,17 @@ Describe 'Update-CherwellTicketHC' {
             $Actual = Get-CherwellTicketHC @testParams -TicketNr $TestTicketObject.busObPublicId -Property OwnedBy, OwnedByID, OwnedByTeam
         
             $Actual.OwnedBy | 
-            Should -Be $testUser1.CherwellSystemUser.busObPublicId
+            Should -Be $testUsers[0].CherwellSystemUser.busObPublicId
             $Actual.OwnedByID | 
-            Should -Be  $testUser1.CherwellSystemUser.busObRecId
+            Should -Be  $testUsers[0].CherwellSystemUser.busObRecId
             $Actual.OwnedByTeam | Should -Be  $Expected.OwnedByTeam
         }
         It "OwnedBy, OwnedById and OwnedByTeam" {
             $Expected = (
                 @{
-                    OwnedBy     = $testUser2.CherwellSystemUser.busObPublicId
-                    OwnedById   = $testUser2.CherwellSystemUser.busObRecId
-                    OwnedByTeam = $testUser2.OwnedByTeam
+                    OwnedBy     = $testUsers[1].CherwellSystemUser.busObPublicId
+                    OwnedById   = $testUsers[1].CherwellSystemUser.busObRecId
+                    OwnedByTeam = $testUsers[1].OwnedByTeam
                 } + $testMandatoryFields
             )
         
@@ -1505,9 +1484,9 @@ Describe 'Update-CherwellTicketHC' {
         $Expected = @{
             Status           = 'Resolved'
             CloseDescription = 'Done!'
-            OwnedBy          = $testUser1.CherwellSystemUser.busObPublicId
-            OwnedById        = $testUser1.CherwellSystemUser.busObRecId
-            OwnedByTeam      = $testUser1.OwnedByTeam
+            OwnedBy          = $testUsers[0].CherwellSystemUser.busObPublicId
+            OwnedById        = $testUsers[0].CherwellSystemUser.busObRecId
+            OwnedByTeam      = $testUsers[0].OwnedByTeam
         }
 
         $Before = Get-CherwellTicketHC @testParams -TicketNr $TestTicketObject.busObPublicId -Property Status, CloseDescription

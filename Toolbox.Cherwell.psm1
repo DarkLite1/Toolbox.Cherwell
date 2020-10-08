@@ -37,7 +37,7 @@ Function ConvertTo-HashTableHC {
             return $null
         }
 
-        if ($InputObject -is [System.Collections.IEnumerable] -and $InputObject -isnot [String]) {
+        if ($InputObject -is [System.Collections.IEnumerable] -and $InputObject -isNot [String]) {
             $collection = @(
                 foreach ($object in $InputObject) {
                     ConvertTo-HashtableHC -InputObject $object
@@ -82,7 +82,7 @@ Function Test-CredentialPropertyHC {
             }
         }
 
-        if ($AuthMode -notcontains $N.Value['AuthMode']) {
+        if ($AuthMode -notContains $N.Value['AuthMode']) {
             throw "Authentication mode '$($N.Value['AuthMode'])' is not supported. The parameter 'AuthMode' only supports the values: $($AuthMode -join ', ')."
         }
     }
@@ -247,13 +247,13 @@ Function Add-CherwellTicketConfigItemHC {
         Multiple tickets are supported.
 
     .EXAMPLE
-        Link all computer CI's that have the FriendlyName 'BELCL003000' to the 
+        Link all computer CI's that have the FriendlyName 'Computer1' to the 
         ticket in the test environment with number 5
 
         $CI = Get-CherwellConfigItemHC -PassThru -Environment Test -Type 'ConfigComputer' -Filter @{
             FieldName  = 'FriendlyName'
             Operator   = 'eq'
-            FieldValue = 'BELCL003000'
+            FieldValue = 'Computer1'
         }
 
         Add-CherwellTicketConfigItemHC -Environment Test -Ticket 5 -ConfigItem $CI
@@ -486,7 +486,7 @@ Function Add-CherwellTicketDetailHC {
         Add-CherwellTicketDetailHC @testParams -Type 'Task' -Ticket 42173 -KeyValuePair @{
             Type        = 'Work Item'
             Title       = 'Add printer to server'
-            Description = 'Printer BELPR0001 needs ot be added to BELSF0001'
+            Description = 'Printer PRINTER0001 needs ot be added to SERVER2'
         }
 #>
 
@@ -696,7 +696,7 @@ Function Add-CherwellTicketTaskHC {
         Add-CherwellTicketTaskHC -Environment Test -Ticket 42173 -KeyValuePair @{
             Type        = 'Work Item'
             Title       = 'Add printer to server'
-            Description = 'Printer BELPR0001 needs ot be added to BELSF0001'
+            Description = 'Printer PRINTER0001 needs ot be added to SERVER2'
         }
 
     .EXAMPLE
@@ -862,7 +862,7 @@ Function Get-CherwellConfigItemHC {
         those fields.
 
     .PARAMETER InputObject
-        Accepts a CI object coming from 'New-CherwellCongigItemHC'. This can be 
+        Accepts a CI object coming from 'New-CherwellConfigItemHC'. This can be 
         convenient to verify all the properties of a CI. When 'InputObject' is 
         used, all properties are returned by default.
 
@@ -892,7 +892,7 @@ Function Get-CherwellConfigItemHC {
         PSCustomObject.
 
     .EXAMPLE
-        Retrieves all computer CI's with 'FriendlyName' equal to 'BELCL003000'
+        Retrieves all computer CI's with 'FriendlyName' equal to 'Computer1'
 
         $Params = @{
             Environment = 'Test'
@@ -900,7 +900,7 @@ Function Get-CherwellConfigItemHC {
             Filter      = @{
                 FieldName  = 'FriendlyName'
                 Operator   = 'eq'
-                FieldValue = 'BELCL003000'
+                FieldValue = 'Computer1'
             }
         }
         Get-CherwellConfigItemHC @Params
@@ -955,7 +955,7 @@ Function Get-CherwellConfigItemHC {
             CIType          = 'ConfigPrinter'
             Owner           = 'thardey'
             SupportedByTeam = 'BNL'
-            FriendlyName    = 'BELPROOST14'
+            FriendlyName    = 'PRINTER'
             SerialNumber    = '9874605849684'
             Country         = 'BNL'
             PrinterType     = 'Local printer'
@@ -1123,7 +1123,7 @@ Function Get-CherwellConfigItemTypeHC {
         module folder. Ex. Test, Prod, ...
 
     .EXAMPLE
-        Retreive all the Cherwell configuration items in the test environment
+        Retrieve all the Cherwell configuration items in the test environment
 
         Get-CherwellConfigItemTypeHC -Environment Test
  #>
@@ -1344,7 +1344,7 @@ Function Get-CherwellChangeStandardTemplateHC {
         Defines how many results are retrieved at once from the Cherwell 
         server. This can be useful for managing the speed of retrieving 
         results. A high PageSize number might take longer to execute but will 
-        make less calls to the API. A small PageSize number mightbe faster in 
+        make less calls to the API. A small PageSize number might be faster in 
         some cases but result in more calls.
 
         Experimenting with this feature can be done by using the '-Verbose' 
@@ -1436,7 +1436,7 @@ Function Get-CherwellCustomerHC {
     .PARAMETER Filter
         A hash table containing the search conditions used by the API. When the 
         search conditions is met the configuration items that match these 
-        conditions are returned. When no object ismatching the condition, 
+        conditions are returned. When no object is matching the condition, 
         nothing is returned.
 
         The following fields/keys are mandatory:
@@ -1462,7 +1462,7 @@ Function Get-CherwellCustomerHC {
         Defines how many results are retrieved at once from the Cherwell 
         server. This can be useful for managing the speed of retrieving 
         results. A high PageSize number might take longer to execute but will 
-        make less calls to the API. A small PageSize number mightbe faster in 
+        make less calls to the API. A small PageSize number might be faster in 
         some cases but result in more calls.
 
         Experimenting with this feature can be done by using the '-Verbose' 
@@ -1537,14 +1537,14 @@ Function Get-CherwellCustomerHC {
             FieldValue = 'gmail@chucknoriss.com'
         }
         
-        $SubittedBy = Get-CherwellCustomerHC -Environment Test -Property * -Filter @{
+        $SubmittedBy = Get-CherwellCustomerHC -Environment Test -Property * -Filter @{
             FieldName  = 'EMail'
             Operator   = 'eq'
             FieldValue = 'bon.marley@ja.com'
         }
 
         $CustomerRecID = $Requester.busObRecId
-        $SubmitOnBehalfOfID = $SubittedBy.busObRecId
+        $SubmitOnBehalfOfID = $SubmittedBy.busObRecId
 #>
 
     [CmdletBinding()]
@@ -2378,13 +2378,13 @@ Function Get-CherwellSlaHC {
         100 at a time. Request all possible fields and display the progress by 
         using the '-Verbose' switch
 
-        Get-CherwellSLAHC -Environment Prod -PageSize 100 -Property * -Verbose
+        Get-CherwellSlaHC -Environment Prod -PageSize 100 -Property * -Verbose
 
     .EXAMPLE
         Retrieve all SLA's that start with the value 'DEU' in the property 
         'Title' from the 'Prod' environment
 
-        Get-CherwellSLAHC -Environment Prod -Filter @{
+        Get-CherwellSlaHC -Environment Prod -Filter @{
             FieldName  = 'Title'
             Operator   = 'startswith'
             FieldValue = 'DEU'
@@ -2394,7 +2394,7 @@ Function Get-CherwellSlaHC {
         Retrieve all SLA's that have been created after '4/18/2019' from the 
         'Prod' environment
 
-        $RecentlyCreatedSla = Get-CherwellSLAHC -Environment Prod -Filter @{
+        $RecentlyCreatedSla = Get-CherwellSlaHC -Environment Prod -Filter @{
             FieldName  = 'CreatedDateTime'
             Operator   = 'gt'
             FieldValue = '4/18/2019'
@@ -2645,12 +2645,12 @@ Function Get-CherwellSystemUserHC {
 
     .EXAMPLE
         Retrieve all system users from the Cherwell test environment that have 
-        the property 'LastName' set to 'strelec'
+        the property 'LastName' set to 'cnorris'
 
         Get-CherwellSystemUserHC -Environment Test -Filter @{
             FieldName  = 'LastName'
             Operator   = 'eq'
-            FieldValue = 'strelec'
+            FieldValue = 'cnorris'
         }
 
     .EXAMPLE
@@ -2948,13 +2948,13 @@ Function Get-CherwellTicketHC {
         SLAResolveByDeadline, Status, RecId  -Verbose
 
     .EXAMPLE
-        Retrieve all tickets with 'CI' set to 'BELCL003000' from the 'Test' 
+        Retrieve all tickets with 'CI' set to 'Computer1' from the 'Test' 
         environment
 
         $ConfigItem = Get-CherwellConfigItemHC -Environment Test -Type 'ConfigComputer' -Filter @{
             FieldName  = 'HostName'
             Operator   = 'eq'
-            FieldValue = 'BELCL003000'
+            FieldValue = 'Computer1'
         } -PassThru
 
         Get-CherwellTicketHC -Environment Test -Filter @{
@@ -3560,60 +3560,10 @@ Function Invoke-GetRelatedBusinessObjectHC {
 Function Invoke-GetSearchItemsHC {
     <#
     .EXAMPLE
-        $Test = Invoke-GetSearchItemsHC
-        $test.supportedAssociations.name
+        Retrieve all search items
 
-        Approval Request
-        Approval Task
-        Change Request
-        Config - Computer
-        Config - Mobile Device
-        Config - Network Device
-        Config - Other CI
-        Config - Printer
-        Config - Server
-        Config - Software Component
-        Config - Software License
-        Config - System
-        Config - Telephony Equipment
-        Configuration Item
-        CountrySpecific
-        Customer - Internal
-        Event
-        HC-AirWatch Import Table
-        HC-CiscoAP Import Table
-        HC-CiscoSNIF Import Table
-        HC-itracks Import Table
-        HC-KoMi Import Table
-        HC-SCCM Computer Import Table
-        HC-SCCM Server Import Table
-        HC-SolarWinds Import Table
-        HC-SolarWinds Staging Table
-        HC-VMWare Server Import Table
-        HC-WyseThinclients DEUHEIDWYDM01 Import Table
-        HC-WyseThinclients SGPSINGWYDM01 Import Table
-        HC-WyseThinclients USALEWIWYDM01 Import Table
-        Journal
-        Journal Attachment
-        Knowledge Article
-        Problem
-        Product Catalog
-        Quick Call Template
-        Risk Assessment
-        Scorecard
-        SCT_WU_Join
-        Service
-        Service Cart
-        Service Catalog Template
-        Service Schedule
-        SLA
-        SLA Target Time
-        Specific - HC Generic Incident Form Questions
-        Task
-        Ticket
-        UserInfo
-        Work Item
-        Work Unit
+        $items = Invoke-GetSearchItemsHC
+        $items.supportedAssociations.name
     #>
     Param (
     )
@@ -3822,11 +3772,11 @@ Function New-CherwellConfigItemHC {
         Create a new CI in the Cherwell test environment
 
         New-CherwellConfigItemHC -Environment Test -Type 'ConfigPrinter' -KeyValuePair @{
-            FriendlyName    = 'BELPROOST14'
-            HostName        = 'BELPROOST14'
+            FriendlyName    = 'PRINTER'
+            HostName        = 'PRINTER'
             SerialNumber    = '9874605849684'
             Country         = 'BNL'
-            Location        = "BEL\Braine L'Alleud\"
+            Location        = "BEL\Brussels"
             Comment         = 'KoMi rollout 2019'
             Manufacturer    = 'Konica Minolta'
             Model           = 'Bizhub 3545c'
@@ -4070,7 +4020,7 @@ Function New-CherwellTicketHC {
         Create a ticket using the convenience arguments, the ones ending with 
         `*SamAccountName`. This is the quickest way to create a new ticket. The 
         module will try to find a single matching system user/customer 
-        utomatically. 
+        automatically. 
 
         $ticketNr = New-CherwellTicketHC -Environment Stage -KeyValuePair @{
             IncidentType            = 'Incident'
@@ -4129,7 +4079,7 @@ Function New-CherwellTicketHC {
         New-CherwellTicketHC -Environment Test -KeyValuePair @(
             @{
                 IncidentType            = 'Incident'
-                RequesterSamAccountName = 'norrisc'
+                RequesterSamAccountName = 'cnorris'
                 OwnedByTeam             = 'PRINTER TEAM'
                 ShortDescription        = 'Printer offline'
                 Description             = 'Check the connection to the printer'
@@ -4165,7 +4115,7 @@ Function New-CherwellTicketHC {
                 CIType          = 'ConfigPrinter'
                 Owner           = 'thardey'
                 SupportedByTeam = 'BNL'
-                FriendlyName    = 'BELPROOST14'
+                FriendlyName    = 'PRINTER'
                 SerialNumber    = '9874605849684'
                 Country         = 'BNL'
                 PrinterType     = 'Local printer'
@@ -4176,7 +4126,7 @@ Function New-CherwellTicketHC {
 
         New-CherwellTicketHC -PassThru -Environment Stage -KeyValuePair @{
             IncidentType            = 'Incident'
-            RequesterSamAccountName = 'norrisc'
+            RequesterSamAccountName = 'cnorris'
             OwnedByTeam             = 'PRINTER TEAM'
             ShortDescription        = 'Printer offline'
             Description             = 'Please check the connection'
@@ -4199,13 +4149,13 @@ Function New-CherwellTicketHC {
             Filter = @{
                 FieldName  = 'FriendlyName'
                 Operator   = 'eq'
-                FieldValue = 'BELPROOS3'
+                FieldValue = 'PRINTER5'
             }
         }
 
         New-CherwellTicketHC -Environment Stage -KeyValuePair @{
             IncidentType            = 'Incident'
-            RequesterSamAccountName = 'norrisc'
+            RequesterSamAccountName = 'cnorris'
             OwnedByTeam             = 'PRINTER TEAM'
             ShortDescription        = 'Printer offline'
             Description             = 'Check the connection to the printer'
@@ -4224,7 +4174,7 @@ Function New-CherwellTicketHC {
         
         New-CherwellTicketHC -Environment Stage -KeyValuePair @{
             IncidentType            = 'Request'
-            RequesterSamAccountName = 'norrisc'
+            RequesterSamAccountName = 'cnorris'
             OwnedByTeam             = 'PRINTER TEAM'
             ShortDescription        = 'Printer installation'
             Description             = 'Please install printer'
@@ -4289,7 +4239,7 @@ Function New-CherwellTicketHC {
                     ($RequestFields.ContainsKey('ConfigItemRecID')) -or
                     ($RequestFields.ContainsKey('ConfigItemDisplayName'))
                 ) {
-                    throw "When you want to attach a 'Primary CI' to the ticket, please use the key 'CI' containing a CI object as retrieved by 'Get-CherwellConfigItemHC -PassThru' or a simple hashtable like @{Type = 'Computer'; Filter = @{FieldName = 'HostName'; Operator = 'eq' ; FieldValue = 'BELCL003000'}}. Other CI keys like 'ConfigItemRecID' and 'ConfigItemDisplayName' are not allowed."
+                    throw "When you want to attach a 'Primary CI' to the ticket, please use the key 'CI' containing a CI object as retrieved by 'Get-CherwellConfigItemHC -PassThru' or a simple hashtable like @{Type = 'Computer'; Filter = @{FieldName = 'HostName'; Operator = 'eq' ; FieldValue = 'Computer1'}}. Other CI keys like 'ConfigItemRecID' and 'ConfigItemDisplayName' are not allowed."
                 }
 
                 $CI = $null
@@ -4825,9 +4775,9 @@ Function Test-InvalidPropertyCombinationHC {
         $KeyValuePair.Keys | Where-Object {
             $_ -match '^OwnedBy$|^OwnedById$'
         } | ForEach-Object {
-            throw "The field 'OwnedBySamAccountName' cannot be combined with the fields 'OwnedBy' or 'OwnedById'. Please use 'Get-CherwellSystemUserHC' that provides you wtih 'OwnedBy' and 'OwnedById' if you want to be specific."
+            throw "The field 'OwnedBySamAccountName' cannot be combined with the fields 'OwnedBy' or 'OwnedById'. Please use 'Get-CherwellSystemUserHC' that provides you with 'OwnedBy' and 'OwnedById' if you want to be specific."
         }
-        if ($KeyValuePair.Keys -notcontains 'OwnedByTeam') {
+        if ($KeyValuePair.Keys -notContains 'OwnedByTeam') {
             throw $ownedByTeamIsMissingError
         }
     }
@@ -4838,10 +4788,10 @@ Function Test-InvalidPropertyCombinationHC {
         Where-Object { $_ -match '^OwnedBy$|^OwnedById$' }
     )
     if ($missingProperty.Count -eq 1) {
-        throw "Both the fields 'OwnedBy' and 'OwnedById' need to be specified. Please use the field 'OwnedBySamAccountName' instead or use 'Get-CherwellSystemUserHC' that provides you wtih 'OwnedBy' and 'OwnedById' if you want to be specific."
+        throw "Both the fields 'OwnedBy' and 'OwnedById' need to be specified. Please use the field 'OwnedBySamAccountName' instead or use 'Get-CherwellSystemUserHC' that provides you with 'OwnedBy' and 'OwnedById' if you want to be specific."
     }
     if (($missingProperty.Count -eq 2) -and 
-        ($KeyValuePair.Keys -notcontains 'OwnedByTeam') 
+        ($KeyValuePair.Keys -notContains 'OwnedByTeam') 
     ) {
         throw $ownedByTeamIsMissingError
     }
@@ -4852,7 +4802,7 @@ Function Test-InvalidPropertyCombinationHC {
         Where-Object { $_ -match '^RequesterSamAccountName$|^CustomerRecID$' }
     )
     if ($requesterProperties.Count -eq 2) {
-        throw "The field 'RequesterSamAccountName' cannot be combined with the field 'CustomerRecID'. Please use 'Get-CherwellCustomerHC' to obatain the 'CustomerRecID' or use the SamAccountName in the field 'RequesterSamAccountName'."
+        throw "The field 'RequesterSamAccountName' cannot be combined with the field 'CustomerRecID'. Please use 'Get-CherwellCustomerHC' to obtain the 'CustomerRecID' or use the SamAccountName in the field 'RequesterSamAccountName'."
     }
     #endregion
 
@@ -4862,7 +4812,7 @@ Function Test-InvalidPropertyCombinationHC {
             $_ -match '^SubmitOnBehalfOfID$|^SubmittedBySamAccountName$' }
     )
     if ($requesterProperties.Count -eq 2) {
-        throw "The field 'SubmittedBySamAccountName' cannot be combined with the field 'SubmitOnBehalfOfID'. Please use 'Get-CherwellCustomerHC' to obatain the 'SubmitOnBehalfOfID' or use the SamAccountName in the field 'SubmittedBySamAccountName'."
+        throw "The field 'SubmittedBySamAccountName' cannot be combined with the field 'SubmitOnBehalfOfID'. Please use 'Get-CherwellCustomerHC' to obtain the 'SubmitOnBehalfOfID' or use the SamAccountName in the field 'SubmittedBySamAccountName'."
     }
     #endregion
 }
@@ -4950,18 +4900,18 @@ Function Update-CherwellTicketHC {
 
     .EXAMPLE
         Update the field CustomerRecID also knowns as the field 
-        'RequesterSamAccountName' to the customer with SamAccountName 'idrielba'
+        'RequesterSamAccountName' to the customer with SamAccountName 'jbond'
 
         Update-CherwellTicketHC -Environment Test -Ticket 30 -KeyValuePair @{
-            RequesterSamAccountName = 'idrielba'
-            ServiceCountryCode      = 'BNL'
+            RequesterSamAccountName = 'jbond'
+            ServiceCountryCode      = 'GBR'
         }
 
     .EXAMPLE
         Change the 'Priority' and the 'ShortDescription' for 2 tickets
 
         Update-CherwellTicketHC -Environment Test -Ticket 6, 7 -KeyValuePair @{
-            ShortDescription = 'HIHG PRIO TICKET'
+            ShortDescription = 'URGENT TICKET'
             Priority         = 1
         }
 
