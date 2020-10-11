@@ -386,6 +386,15 @@ Describe 'Get-CherwellTicketHC' {
             $Actual | Should -HaveCount 2
         }
     }
+    Context "throw a terminating error when" {
+        It "requesting more than 1000 tickets at the same time, the API can't handle this" {
+            {
+                Get-CherwellTicketHC @testParams -TicketNr  @(0..1001)
+            } | 
+            Should -Throw -PassThru |
+            Should -BeLike "*Cannot validate argument on parameter 'TicketNr'. The number of provided arguments, (1002), exceeds the maximum number of allowed arguments (1000). Provide fewer than 1000 arguments, and then try the command again*"
+        } -Tag 'test'
+    }
 }
 Describe 'Set-CherwellTicketDetailHC' {
     BeforeAll {

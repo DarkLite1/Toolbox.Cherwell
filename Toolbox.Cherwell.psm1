@@ -2970,6 +2970,7 @@ Function Get-CherwellTicketHC {
         [Parameter(Mandatory, ParameterSetName = 'TicketNr')]
         [Parameter(Mandatory, ParameterSetName = 'TicketNrField')]
         [ValidateNotNullOrEmpty()]
+        [ValidateCount(1,1000)]
         [Int[]]$TicketNr,
         [Parameter(Mandatory, ParameterSetName = 'Filter')]
         [Parameter(Mandatory, ParameterSetName = 'FilterField')]
