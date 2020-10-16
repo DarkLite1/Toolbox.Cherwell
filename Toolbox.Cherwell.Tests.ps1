@@ -1,9 +1,10 @@
 #Requires -Modules Pester
 #Requires -Version 5.1
 
+$moduleName = 'Toolbox.Cherwell'
+
 $testScript = $PSCommandPath.Replace('.Tests.ps1', '.psm1')
-$moduleName = $testScript.Split('\')[-3]
-Get-Module $moduleName | Remove-Module -Force -Verbose:$false
+Remove-Module $moduleName -Force -Verbose:$false -EA Ignore
 Import-Module $testScript -Force -Verbose:$false
 
 BeforeAll {
@@ -31,8 +32,8 @@ BeforeAll {
             Location    = $null
         }
         @{
-            CIType        = 'ConfigSystem'
-            Description   = 'Not so many of these, speeds up the test'
+            CIType      = 'ConfigSystem'
+            Description = 'Not so many of these, speeds up the test'
         }
     )
     # should be in BeforeDiscovery https://github.com/pester/Pester/issues/1705
