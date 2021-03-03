@@ -1,18 +1,19 @@
 #Requires -Modules Pester
 #Requires -Version 5.1
 
-$moduleName = 'Toolbox.Cherwell'
+BeforeDiscovery {
+    # used by inModuleScope
+    $testModule = $PSCommandPath.Replace('.Tests.ps1', '.psm1')
+    $testModuleName = $testModule.Split('\')[-1].TrimEnd('.psm1')
 
-$testScript = $PSCommandPath.Replace('.Tests.ps1', '.psm1')
-Remove-Module $moduleName -Force -Verbose:$false -EA Ignore
-Import-Module $testScript -Force -Verbose:$false
-
+    Remove-Module $testModuleName -Force -Verbose:$false -EA Ignore
+    Import-Module $testModule -Force -Verbose:$false
+}
 BeforeAll {
     $testParams = @{
         Environment = 'Stage'
         ErrorAction = 'Stop'
     }
-    
     $testMandatoryFields = @{
         ServiceCountryCode = 'BNL'
         Service            = 'APPLICATION'
@@ -69,7 +70,6 @@ BeforeAll {
         }
     )
 }
-
 Describe 'ticket details' {
     BeforeAll {
         $TestTicketNr1 = New-CherwellTicketHC @testParams -KeyValuePair (
@@ -123,7 +123,7 @@ Describe 'Invoke-GetSearchResultsHC' {
             Filter   = @{
                 FieldName  = 'IncidentID'
                 Operator   = 'eq'
-                FieldValue = '2290'
+                FieldValue = '944183'
             }
             Property = 'RecId'
         }
@@ -236,33 +236,24 @@ Describe 'Invoke-GetSearchResultsHC' {
             Property = 'RecId'
         }
     ) | Sort-Object { $_.CmdLet }
-    
-    Context 'Filter' {
-        It '<CmdLet>' -TestCases $TestCases {
+    Context '<CmdLet>' -Foreach $TestCases {
+        It 'Filter' {
             $Actual = & $CmdLet @testParams -Filter $Filter
             $Actual | Should -Not -BeNullOrEmpty
         }
-    }
-    Context 'Property' {
-        It '<CmdLet>' -TestCases $TestCases {
+        It 'Property' {
             $Actual = & $CmdLet @testParams -Filter $Filter -Property $Property
             $Actual | Should -Not -BeNullOrEmpty
         }
-    }
-    Context 'Property *' {
-        It '<CmdLet>' -TestCases $TestCases {
+        It 'Property *' {
             $Actual = & $CmdLet @testParams -Filter $Filter -Property *
             $Actual.LastModBy | Should -Not -BeNullOrEmpty
         }
-    }
-    Context 'PageSize' {
-        It '<CmdLet>' -TestCases $TestCases {
+        It 'PageSize' {
             $Actual = & $CmdLet @testParams -Filter $Filter -PassThru -PageSize 10
             $Actual.busObRecId | Should -Not -BeNullOrEmpty
         }
-    }
-    Context 'PassThru' {
-        It '<CmdLet>' -TestCases $TestCases {
+        It 'PassThru' {
             $Actual = & $CmdLet @testParams -Filter $Filter -PassThru
             $Actual.busObRecId | Should -Not -BeNullOrEmpty
         }
@@ -299,7 +290,7 @@ Describe 'Get-CherwellConfigItemHC' {
         It 'the Type is unknown' {
             {
                 Get-CherwellConfigItemHC @testParams -Type 'NotExisting' -Filter @{
-                    FieldName  = 'FriendlyName'
+                    FieldName  = 'HostName'
                     Operator   = 'eq'
                     FieldValue = 'Kiwi'
                 }
@@ -320,17 +311,17 @@ Describe 'Get-CherwellConfigItemHC' {
         Context 'filter is used' {
             It 'a CI is returned for that CI types' {
                 $Actual = Get-CherwellConfigItemHC @testParams -Type $testConfigItems[0].CIType -Filter @{
-                    FieldName  = 'FriendlyName'
+                    FieldName  = 'HostName'
                     Operator   = 'eq'
-                    FieldValue = $testConfigItems[0].HostName
+                    FieldValue = $env:COMPUTERNAME
                 }
 
                 $Actual | Should -Not -BeNullOrEmpty
-                $Actual[0].HostName | Should -Be $testConfigItems[0].HostName
+                $Actual[0].HostName | Should -Be $env:COMPUTERNAME
             }
             It 'nothing is returned when there is no match' {
                 $Actual = Get-CherwellConfigItemHC @testParams -Type 'ConfigPrinter' -Filter @{
-                    FieldName  = 'FriendlyName'
+                    FieldName  = 'HostName'
                     Operator   = 'eq'
                     FieldValue = 'NotExistingPrinterName'
                 }
@@ -394,7 +385,7 @@ Describe 'Get-CherwellTicketHC' {
             } | 
             Should -Throw -PassThru |
             Should -BeLike "*Cannot validate argument on parameter 'TicketNr'. The number of provided arguments, (1002), exceeds the maximum number of allowed arguments (1000). Provide fewer than 1000 arguments, and then try the command again*"
-        } -Tag 'test'
+        }
     }
 }
 Describe 'Set-CherwellTicketDetailHC' {
@@ -541,9 +532,9 @@ Describe 'New-CherwellTicketHC' {
         Context "'Primary CI' and 'Linked Config Item' where" {
             It 'CI is an object coming from Get-CherwellConfigItemHC' {
                 $testCI = Get-CherwellConfigItemHC -PassThru @testParams -Type $testConfigItems[0].CIType -Filter @{
-                    FieldName  = 'FriendlyName'
+                    FieldName  = 'HostName'
                     Operator   = 'eq'
-                    FieldValue = $testConfigItems[0].HostName
+                    FieldValue = $env:COMPUTERNAME
                 }
 
                 $testCI | Should -Not -BeNullOrEmpty
@@ -560,10 +551,13 @@ Describe 'New-CherwellTicketHC' {
 
                 $TicketNr | Should -Not -BeNullOrEmpty
 
-                $Actual = Get-CherwellTicketHC @testParams -TicketNr $TicketNr -Property ConfigItemDisplayName
+                $Actual = Get-CherwellTicketHC @testParams -TicketNr $TicketNr -Property ConfigItemDisplayName, ConfigItemRecID
 
-                $Actual.ConfigItemDisplayName | Should -Be $testConfigItems[0].HostName
-            }
+                $Actual.ConfigItemRecID | Should -Not -BeNullOrEmpty
+                $Actual.ConfigItemDisplayName | Should -Not -BeNullOrEmpty
+                $Actual.ConfigItemDisplayName | 
+                Should -Be "$env:COMPUTERNAME.$env:USERDNSDOMAIN"
+            } -Tag test
             It 'CI is a hash table' {
                 $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                         IncidentType            = 'Incident'
@@ -575,18 +569,21 @@ Describe 'New-CherwellTicketHC' {
                         CI                      = @{
                             Type   = $testConfigItems[0].CIType
                             Filter = @{
-                                FieldName  = 'FriendlyName'
+                                FieldName  = 'HostName'
                                 Operator   = 'eq'
-                                FieldValue = $testConfigItems[0].HostName
+                                FieldValue = $env:COMPUTERNAME
                             }
                         }
                     } + $testMandatoryFields) 
 
                 $TicketNr | Should -Not -BeNullOrEmpty
 
-                $Actual = Get-CherwellTicketHC @testParams -TicketNr $TicketNr -Property ConfigItemDisplayName
+                $Actual = Get-CherwellTicketHC @testParams -TicketNr $TicketNr -Property ConfigItemDisplayName, ConfigItemRecID
 
-                $Actual.ConfigItemDisplayName | Should -Be $testConfigItems[0].HostName
+                $Actual.ConfigItemRecID | Should -Not -BeNullOrEmpty
+                $Actual.ConfigItemDisplayName | Should -Not -BeNullOrEmpty
+                $Actual.ConfigItemDisplayName | 
+                Should -Be "$env:COMPUTERNAME.$env:USERDNSDOMAIN"
             }
             It 'CI a hash table but the CI is not found, so no CI is set' {
                 $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
@@ -599,7 +596,7 @@ Describe 'New-CherwellTicketHC' {
                         CI                      = @{
                             Type   = $testConfigItems[0].CIType
                             Filter = @{
-                                FieldName  = 'FriendlyName'
+                                FieldName  = 'HostName'
                                 Operator   = 'eq'
                                 FieldValue = 'NotExistingCI'
                             }
@@ -608,8 +605,9 @@ Describe 'New-CherwellTicketHC' {
 
                 $TicketNr | Should -Not -BeNullOrEmpty
 
-                $Actual = Get-CherwellTicketHC @testParams -TicketNr $TicketNr -Property ConfigItemDisplayName
+                $Actual = Get-CherwellTicketHC @testParams -TicketNr $TicketNr -Property ConfigItemDisplayName, ConfigItemRecID
 
+                $Actual.ConfigItemRecID | Should -BeNullOrEmpty
                 $Actual.ConfigItemDisplayName | Should -BeNullOrEmpty
             }
         } -Tag 'ci'
@@ -915,9 +913,9 @@ Describe 'Add-CherwellTicketConfigItemHC' {
                 } + $testMandatoryFields)
 
             $testCI = Get-CherwellConfigItemHC -PassThru @testParams -Type $testConfigItems[0].CIType -Filter @{
-                FieldName  = 'FriendlyName'
+                FieldName  = 'HostName'
                 Operator   = 'eq'
-                FieldValue = $testConfigItems[0].HostName
+                FieldValue = $env:COMPUTERNAME
             }
 
             $testCI | Should -Not -BeNullOrEmpty
@@ -936,9 +934,9 @@ Describe 'Add-CherwellTicketConfigItemHC' {
                 } + $testMandatoryFields)
 
             $testCI = Get-CherwellConfigItemHC -PassThru @testParams -Type $testConfigItems[0].CIType -Filter @{
-                FieldName  = 'FriendlyName'
+                FieldName  = 'HostName'
                 Operator   = 'eq'
-                FieldValue = $testConfigItems[0].HostName
+                FieldValue = $env:COMPUTERNAME
             }
 
             $testCI | Should -Not -BeNullOrEmpty
@@ -958,9 +956,9 @@ Describe 'Add-CherwellTicketConfigItemHC' {
             } + $testMandatoryFields)
 
         $testCIMultiple = Get-CherwellConfigItemHC -PassThru @testParams -Type $testConfigItems[0].CIType -Filter @{
-            FieldName  = 'FriendlyName'
+            FieldName  = 'HostName'
             Operator   = 'contains'
-            FieldValue = $testConfigItems[0].HostName
+            FieldValue = $env:COMPUTERNAME
         }
 
         $testCIMultiple | Should -Not -BeNullOrEmpty
@@ -972,7 +970,7 @@ Describe 'Add-CherwellTicketConfigItemHC' {
     }
 } -Tag 'ci'
 Describe 'Test-InvalidPropertyCombinationHC' {
-    InModuleScope $moduleName {
+    InModuleScope $testModuleName {
         Context 'thrown an error on an incorrect combination' {
             $errorMessageOwnedBySamAccountName = "The field 'OwnedBySamAccountName' cannot be combined with the fields 'OwnedBy' or 'OwnedById'. Please use 'Get-CherwellSystemUserHC' that provides you with 'OwnedBy' and 'OwnedById' if you want to be specific."
             $errorMessageOwnedByIdOrOwnedBy = "Both the fields 'OwnedBy' and 'OwnedById' need to be specified. Please use the field 'OwnedBySamAccountName' instead or use 'Get-CherwellSystemUserHC' that provides you with 'OwnedBy' and 'OwnedById' if you want to be specific."
@@ -1054,7 +1052,7 @@ Describe 'Test-InvalidPropertyCombinationHC' {
                     Name         = $KeyValuePair.Keys -join ' + '
                 }
             )
-            It "<Name>" -TestCases $TestCases {
+            It "<Name>" -Foreach $TestCases {
                 {
                     Test-InvalidPropertyCombinationHC -KeyValuePair $KeyValuePair
                 } |
@@ -1110,7 +1108,7 @@ Describe 'Test-InvalidPropertyCombinationHC' {
                     Name         = $KeyValuePair.Keys -join ' + '
                 }
             )
-            It "<Name>" -TestCases $TestCases {
+            It "<Name>" -Foreach $TestCases {
                 {
                     Test-InvalidPropertyCombinationHC -KeyValuePair $KeyValuePair
                 } |
@@ -1120,7 +1118,7 @@ Describe 'Test-InvalidPropertyCombinationHC' {
     }
 }
 Describe 'New-CherwellSearchFilterHC' {
-    InModuleScope $moduleName {
+    InModuleScope $testModuleName {
         BeforeAll {
             $testSchema = @{
                 FieldDefinitions = (
@@ -1314,7 +1312,7 @@ Describe 'Update-CherwellTicketHC' {
             }
         )
 
-        It "<Name>" -TestCases $TestCases {
+        It "<Name>" -Foreach $TestCases {
             $TicketNr = $TestTicketObject.busObPublicId
 
             $Before = Get-CherwellTicketHC @testParams -TicketNr $TicketNr -Property *

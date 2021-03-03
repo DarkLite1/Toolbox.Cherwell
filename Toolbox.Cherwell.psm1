@@ -898,7 +898,7 @@ Function Get-CherwellConfigItemHC {
             Environment = 'Test'
             Type        = 'ConfigComputer'
             Filter      = @{
-                FieldName  = 'FriendlyName'
+                FieldName  = 'HostName'
                 Operator   = 'eq'
                 FieldValue = 'Computer1'
             }
@@ -955,7 +955,7 @@ Function Get-CherwellConfigItemHC {
             CIType          = 'ConfigPrinter'
             Owner           = 'thardey'
             SupportedByTeam = 'BNL'
-            FriendlyName    = 'PRINTER'
+            HostName        = 'PRINTER'
             SerialNumber    = '9874605849684'
             Country         = 'BNL'
             PrinterType     = 'Local printer'
