@@ -2970,7 +2970,7 @@ Function Get-CherwellTicketHC {
         [Parameter(Mandatory, ParameterSetName = 'TicketNr')]
         [Parameter(Mandatory, ParameterSetName = 'TicketNrField')]
         [ValidateNotNullOrEmpty()]
-        [ValidateCount(1,1000)]
+        [ValidateCount(1, 1000)]
         [Int[]]$TicketNr,
         [Parameter(Mandatory, ParameterSetName = 'Filter')]
         [Parameter(Mandatory, ParameterSetName = 'FilterField')]
@@ -3637,7 +3637,8 @@ Function Invoke-GetSearchResultsHC {
         Do {
             Select-EnvironmentHC -Name $Environment
 
-            $Body.PageNumber++
+            $Body.PageNumber = if ($RetrievedObjects -eq 0) { 1 }
+            else { $Body.PageNumber + $PageSize }
 
             $Params = @{
                 Uri        = ($Uri + 'api/V1/getsearchresults')
