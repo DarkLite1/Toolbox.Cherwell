@@ -3783,6 +3783,21 @@ Function New-CherwellConfigItemHC {
             Manufacturer    = 'Konica Minolta'
             Model           = 'Bizhub 3545c'
         }
+
+    .EXAMPLE
+        Create a new CI in the stage environment
+
+        New-CherwellConfigItemHC -Environment Test -Type 'ConfigSystem' -KeyValuePair @{
+            CIType      = 'ConfigServer'
+            CIStatus    = 'Active'
+            AssetTag    = '807584'
+            AssetType   = 'Virtual Server'
+            AssetStatus = 'New'
+            IPAddress   = '192.168.1.1'
+            HostName    = $env:COMPUTERNAME
+            Model       = 'VmWare Virtual Platform'
+            Location    = $null
+        }
 #>
 
     [OutputType()]

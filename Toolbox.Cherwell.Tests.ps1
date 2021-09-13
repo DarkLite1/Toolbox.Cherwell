@@ -24,18 +24,18 @@ BeforeAll {
     $testConfigItems = @(
         @{
             CIType      = 'ConfigServer'
-            CIStatus     = 'Active'
+            CIStatus    = 'Active'
             AssetTag    = '807584'
             AssetType   = 'Virtual Server'
             AssetStatus = 'New'
             IPAddress   = '192.168.1.1'
             HostName    = $env:COMPUTERNAME
             Model       = 'VmWare Virtual Platform'
-        Location    = $null
+            Location    = $null
         }
         @{
             CIType      = 'ConfigSystem'
-            CIStatus     = 'Active'
+            CIStatus    = 'Active'
             Description = 'Not so many of these, speeds up the test'
         }
     )
@@ -238,7 +238,7 @@ Describe 'Invoke-GetSearchResultsHC' {
             Property = 'RecId'
         }
     ) | Sort-Object { $_.CmdLet }
-    Context '<CmdLet>' -Foreach $TestCases {
+    Context '<CmdLet>' -ForEach $TestCases {
         It 'Filter' {
             $Actual = & $CmdLet @testParams -Filter $Filter
             $Actual | Should -Not -BeNullOrEmpty
@@ -516,7 +516,7 @@ Describe 'New-CherwellTicketHC' {
             } | Should -Throw
         } 
         It 'Test-InvalidPropertyCombinationHC is called' {
-            Mock Test-InvalidPropertyCombinationHC
+            Mock Test-InvalidPropertyCombinationHC -ModuleName $testModuleName
             
             New-CherwellTicketHC @testParams -KeyValuePair (@{
                     IncidentType            = 'Incident'
@@ -527,7 +527,7 @@ Describe 'New-CherwellTicketHC' {
                     Source                  = 'Event'
                 } + $testMandatoryFields) 
             
-            Should -Invoke Test-InvalidPropertyCombinationHC -Exactly -Times 1
+            Should -Invoke Test-InvalidPropertyCombinationHC -Exactly -Times 1 -ModuleName $testModuleName
         }
     }
     Context 'create a new ticket with' {
@@ -853,22 +853,22 @@ Describe 'New-CherwellTicketHC' {
     It 'create multiple tickets at once' {
         $Actual = New-CherwellTicketHC @testParams -KeyValuePair @(
             (@{
-                    IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUsers[0].SamAccountName
-                    OwnedByTeam             = $testUsers[0].OwnedByTeam
-                    Status                  = 'New'
-                    ShortDescription        = 'Automated test'
-                    Description             = 'Pester test description'
-                    Source                  = 'Event'
-                } + $testMandatoryFields)
+                IncidentType            = 'Incident'
+                RequesterSamAccountName = $testUsers[0].SamAccountName
+                OwnedByTeam             = $testUsers[0].OwnedByTeam
+                Status                  = 'New'
+                ShortDescription        = 'Automated test'
+                Description             = 'Pester test description'
+                Source                  = 'Event'
+            } + $testMandatoryFields)
             (@{
-                    IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUsers[0].SamAccountName
-                    Status                  = 'New'
-                    ShortDescription        = 'Automated test'
-                    Description             = 'Pester test description'
-                    Source                  = 'Event'
-                } + $testMandatoryFields)
+                IncidentType            = 'Incident'
+                RequesterSamAccountName = $testUsers[0].SamAccountName
+                Status                  = 'New'
+                ShortDescription        = 'Automated test'
+                Description             = 'Pester test description'
+                Source                  = 'Event'
+            } + $testMandatoryFields)
         )
 
         $Actual | Should -HaveCount 2
@@ -1054,7 +1054,7 @@ Describe 'Test-InvalidPropertyCombinationHC' {
                     Name         = $KeyValuePair.Keys -join ' + '
                 }
             )
-            It "<Name>" -Foreach $TestCases {
+            It "<Name>" -ForEach $TestCases {
                 {
                     Test-InvalidPropertyCombinationHC -KeyValuePair $KeyValuePair
                 } |
@@ -1110,7 +1110,7 @@ Describe 'Test-InvalidPropertyCombinationHC' {
                     Name         = $KeyValuePair.Keys -join ' + '
                 }
             )
-            It "<Name>" -Foreach $TestCases {
+            It "<Name>" -ForEach $TestCases {
                 {
                     Test-InvalidPropertyCombinationHC -KeyValuePair $KeyValuePair
                 } |
@@ -1275,7 +1275,7 @@ Describe 'Update-CherwellTicketHC' {
             Should -Throw -PassThru | Should -BeLike '*Ticket number * not found*'
         }
         It 'Test-InvalidPropertyCombinationHC is called' {
-            Mock Test-InvalidPropertyCombinationHC
+            Mock Test-InvalidPropertyCombinationHC -ModuleName $testModuleName
             
             Update-CherwellTicketHC @testParams -TicketNr $TestTicketObject.busObPublicId -KeyValuePair (
                 @{
@@ -1283,7 +1283,7 @@ Describe 'Update-CherwellTicketHC' {
                 } + $testMandatoryFields
             ) 
             
-            Should -Invoke Test-InvalidPropertyCombinationHC -Exactly -Times 1
+            Should -Invoke Test-InvalidPropertyCombinationHC -Exactly -Times 1 -ModuleName $testModuleName
         }
     }
     Context 'the field is updated for' {
@@ -1314,7 +1314,7 @@ Describe 'Update-CherwellTicketHC' {
             }
         )
 
-        It "<Name>" -Foreach $TestCases {
+        It "<Name>" -ForEach $TestCases {
             $TicketNr = $TestTicketObject.busObPublicId
 
             $Before = Get-CherwellTicketHC @testParams -TicketNr $TicketNr -Property *
