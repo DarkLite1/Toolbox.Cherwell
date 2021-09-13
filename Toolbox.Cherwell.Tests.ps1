@@ -515,20 +515,6 @@ Describe 'New-CherwellTicketHC' {
                     } + $testMandatoryFields) 
             } | Should -Throw
         } 
-        It 'Test-InvalidPropertyCombinationHC is called' {
-            Mock Test-InvalidPropertyCombinationHC -ModuleName $testModuleName
-            
-            New-CherwellTicketHC @testParams -KeyValuePair (@{
-                    IncidentType            = 'Incident'
-                    RequesterSamAccountName = $testUsers[0].SamAccountName
-                    Status                  = 'New'
-                    ShortDescription        = 'Automated test'
-                    Description             = 'Pester test incorrect properties'
-                    Source                  = 'Event'
-                } + $testMandatoryFields) 
-            
-            Should -Invoke Test-InvalidPropertyCombinationHC -Exactly -Times 1 -ModuleName $testModuleName
-        }
     }
     Context 'create a new ticket with' {
         Context "'Primary CI' and 'Linked Config Item' where" {
@@ -559,7 +545,7 @@ Describe 'New-CherwellTicketHC' {
                 $Actual.ConfigItemDisplayName | Should -Not -BeNullOrEmpty
                 $Actual.ConfigItemDisplayName | 
                 Should -Be "$env:COMPUTERNAME.$env:USERDNSDOMAIN"
-            } -Tag test
+            }
             It 'CI is a hash table' {
                 $TicketNr = New-CherwellTicketHC @testParams -KeyValuePair (@{
                         IncidentType            = 'Incident'
@@ -1273,17 +1259,6 @@ Describe 'Update-CherwellTicketHC' {
                 Update-CherwellTicketHC @testParams -TicketNr 99999999 -KeyValuePair @{ } 
             } |
             Should -Throw -PassThru | Should -BeLike '*Ticket number * not found*'
-        }
-        It 'Test-InvalidPropertyCombinationHC is called' {
-            Mock Test-InvalidPropertyCombinationHC -ModuleName $testModuleName
-            
-            Update-CherwellTicketHC @testParams -TicketNr $TestTicketObject.busObPublicId -KeyValuePair (
-                @{
-                    Description = 'test update'
-                } + $testMandatoryFields
-            ) 
-            
-            Should -Invoke Test-InvalidPropertyCombinationHC -Exactly -Times 1 -ModuleName $testModuleName
         }
     }
     Context 'the field is updated for' {
