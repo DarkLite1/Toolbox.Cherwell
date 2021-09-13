@@ -16,24 +16,26 @@ BeforeAll {
     }
     $testMandatoryFields = @{
         ServiceCountryCode = 'BNL'
-        Service            = 'APPLICATION'
-        Category           = 'ALPHA'
-        SubCategory        = 'Request Service'
+        Service            = 'END USER WORKPLACE'
+        Category           = 'Category t.b.d.'
+        SubCategory        = 'Submit Incident'
         Priority           = '2'
     }
     $testConfigItems = @(
         @{
             CIType      = 'ConfigServer'
+            CIStatus     = 'Active'
             AssetTag    = '807584'
             AssetType   = 'Virtual Server'
             AssetStatus = 'New'
             IPAddress   = '192.168.1.1'
             HostName    = $env:COMPUTERNAME
             Model       = 'VmWare Virtual Platform'
-            Location    = $null
+        Location    = $null
         }
         @{
             CIType      = 'ConfigSystem'
+            CIStatus     = 'Active'
             Description = 'Not so many of these, speeds up the test'
         }
     )
@@ -123,7 +125,7 @@ Describe 'Invoke-GetSearchResultsHC' {
             Filter   = @{
                 FieldName  = 'IncidentID'
                 Operator   = 'eq'
-                FieldValue = '944183'
+                FieldValue = '1120690'
             }
             Property = 'RecId'
         }
