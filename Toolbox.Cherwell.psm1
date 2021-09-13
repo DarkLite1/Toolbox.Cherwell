@@ -3787,8 +3787,7 @@ Function New-CherwellConfigItemHC {
     .EXAMPLE
         Create a new CI in the stage environment
 
-        New-CherwellConfigItemHC -Environment Test -Type 'ConfigSystem' -KeyValuePair @{
-            CIType      = 'ConfigServer'
+        New-CherwellConfigItemHC -Environment Test -Type 'ConfigServer' -KeyValuePair @{
             CIStatus    = 'Active'
             AssetTag    = '807584'
             AssetType   = 'Virtual Server'
