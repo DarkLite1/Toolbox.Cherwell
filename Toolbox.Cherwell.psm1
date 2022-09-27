@@ -96,6 +96,12 @@ $EnvironmentList = Get-Content -Path $PasswordFile -Raw -EA Stop |
 ConvertFrom-Json -EA Stop | ConvertTo-HashTableHC
 
 foreach ($E in $EnvironmentList.GetEnumerator()) {
+    if (-not $E.Value.Uri) {
+        throw "The property 'Uri' is mandatory in the file Passwords.json"
+    }
+    if ($E.Value.Uri -notMatch '/$') {
+        $E.Value.Uri =+ '/'
+    }
     $E.Value['Schema'] = @{ }
     $E.Value['Summary'] = @{ }
     $E.Value['Template'] = @{ }
